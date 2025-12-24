@@ -1,5 +1,4 @@
 import streamlit as st
-import plotly.graph_objects as go
 import pandas as pd
 import json
 import re
@@ -40,40 +39,13 @@ st.markdown("""
     .news-item { padding: 12px 0; border-bottom: 1px solid #f1f1f1; }
     .news-title { font-weight: 600; font-size: 15px; color: #2c3e50; margin-bottom: 4px; }
     .news-date { font-size: 11px; color: #95a5a6; }
+    
+    /* Custom Progress Bar Color override */
+    .stProgress > div > div > div > div { background-color: #3498db; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- HELPER FUNCTIONS ---
-def get_color(score):
-    # 0 (Peace) -> 100 (War)
-    if score < 20: return "#27ae60" # Emerald
-    if score < 40: return "#f1c40f" # Yellow
-    if score < 60: return "#f39c12" # Orange
-    if score < 80: return "#e67e22" # Dark Orange
-    return "#c0392b" # Red
-
-def create_gauge(current, past):
-    # Visualizes Current Score with a 'Reference' bar for the Past Score
-    fig = go.Figure(go.Indicator(
-        mode = "gauge+number+delta",
-        value = current,
-        domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': "TENSION INDEX", 'font': {'size': 18, 'color': '#7f8c8d'}},
-        delta = {'reference': past, 'increasing': {'color': "#c0392b"}, 'decreasing': {'color': "#27ae60"}},
-        gauge = {
-            'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "#bdc3c7"},
-            'bar': {'color': get_color(current)},
-            'bgcolor': "white",
-            'borderwidth': 2,
-            'bordercolor': "#ecf0f1",
-            'steps': [
-                {'range': [0, 20], 'color': '#e9f7ef'},
-                {'range': [20, 100], 'color': '#fff'}],
-            'threshold': {'line': {'color': "#c0392b", 'width': 4}, 'thickness': 0.75, 'value': current}
-        }))
-    fig.update_layout(height=280, margin=dict(l=20, r=20, t=50, b=20), paper_bgcolor='rgba(0,0,0,0)', font={'family': "Arial"})
-    return fig
-
 def clean_json(text):
     try:
         return json.loads(text)
@@ -209,8 +181,16 @@ if page == "📡 Regional Monitor":
             col_left, col_mid, col_right = st.columns([1.5, 1, 1])
             
             with col_left:
-                # Gauge now shows Delta automatically via Plotly
-                st.plotly_chart(create_gauge(curr, past), use_container_width=True)
+                # --- REPLACED GAUGE WITH METRIC & PROGRESS BAR ---
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="stat-label">Tension Index</div>
+                    <div style="font-size: 48px; font-weight: bold; color: #2c3e50;">{curr}<span style="font-size: 20px; color:#95a5a6;">/100</span></div>
+                    <div style="font-size: 14px; margin-bottom: 10px;">Previous: {past}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                # Visual Bar
+                st.progress(curr / 100)
             
             with col_mid:
                 st.markdown(f"""

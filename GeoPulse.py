@@ -40,6 +40,10 @@ st.markdown("""
     .news-item { padding: 12px 0; border-bottom: 1px solid #f1f1f1; }
     .news-title { font-weight: 600; font-size: 15px; color: #2c3e50; margin-bottom: 4px; }
     .news-date { font-size: 11px; color: #95a5a6; }
+    
+    .risk-high { background-color: #ffebee; color: #c62828; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .risk-med { background-color: #fff3e0; color: #ef6c00; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .risk-low { background-color: #e8f5e9; color: #2e7d32; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -150,6 +154,49 @@ def fetch_global_rankings(key):
         return clean_json(response.choices[0].message.content)
     except: return None
 
+# --- NEW FUNCTION: MARKET WATCHDOG ---
+def fetch_market_risk(commodity, key):
+    if not key: return {"error": "API Key Missing"}
+    client = OpenAI(api_key=key, base_url="https://api.perplexity.ai")
+    
+    system_prompt = """
+    You are a Global Commodity Risk Analyst. Return STRICT JSON.
+    
+    TASK:
+    1. Identify top 5-8 MAJOR producing countries for the requested commodity.
+    2. Analyze the CURRENT geopolitical tension/conflict level for each country.
+    3. Calculate a "Supply Chain Risk Score" (0-100) for that commodity based on the stability of these key producers.
+    4. Predict price impact purely based on geopolitical risk (Bullish=Prices Up/Risk High, Bearish=Prices Down/Oversupply).
+    
+    REQUIRED JSON STRUCTURE:
+    {
+        "commodity": "String",
+        "global_risk_score": Integer (0-100),
+        "price_outlook": "String (e.g. 'Bullish', 'Bearish', 'Volatile')",
+        "outlook_reason": "String (Short explanation of price prediction)",
+        "top_producers": [
+            {
+                "country": "String",
+                "production_share": "String (e.g. '12%')",
+                "tension_index": Integer (0-100),
+                "risk_note": "String (Specific conflict impacting supply, e.g. 'Red Sea shipping attacks')"
+            }
+        ]
+    }
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="sonar-pro",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Analyze Supply Chain Risk for: {commodity}"}
+            ]
+        )
+        return clean_json(response.choices[0].message.content)
+    except Exception as e:
+        return {"error": str(e)}
+
 # --- SIDEBAR ---
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/globe--v1.png", width=60)
@@ -158,7 +205,7 @@ with st.sidebar:
     st.divider()
     api_key = st.text_input("API Key (Perplexity)", type="password")
     st.divider()
-    page = st.radio("Module", ["📡 Regional Monitor", "📊 Global Heatmap"])
+    page = st.radio("Module", ["📡 Regional Monitor", "📊 Global Heatmap", "📈 Market Watchdog"])
 
 # --- PAGE 1: REGIONAL MONITOR ---
 if page == "📡 Regional Monitor":
@@ -167,8 +214,8 @@ if page == "📡 Regional Monitor":
     
     with st.container():
         c1, c2, c3 = st.columns([2, 2, 1])
-        with c1: country_a = st.text_input("Entity A", "India")
-        with c2: country_b = st.text_input("Entity B", "Bangladesh")
+        with c1: country_a = st.text_input("Entity A", "USA")
+        with c2: country_b = st.text_input("Entity B", "India")
         with c3: 
             st.write("##")
             btn = st.button("Initialize Scan", type="primary", use_container_width=True)
@@ -289,3 +336,87 @@ elif page == "📊 Global Heatmap":
                 st.dataframe(pd.DataFrame(ranks.get('lowest_pressure', [])),
                              column_config={"score": st.column_config.ProgressColumn("Tension", min_value=0, max_value=100, format="%d")},
                              hide_index=True, use_container_width=True)
+
+# --- PAGE 3: MARKET WATCHDOG (NEW) ---
+elif page == "📈 Market Watchdog":
+    st.title("📈 Commodity Risk Watchdog")
+    st.markdown("Analyze how geopolitical tension in top producing nations impacts commodity prices.")
+    
+    if not api_key:
+        st.warning("Please enter your API Key in the sidebar.")
+    else:
+        # 1. Selection Controls
+        col_input, col_btn = st.columns([3, 1])
+        with col_input:
+            commodity_choice = st.selectbox(
+                "Select Commodity to Track:", 
+                ["Crude Oil", "Gold", "Silver", "Semiconductors (Chips)"]
+            )
+        with col_btn:
+            st.write("##")
+            scan_market = st.button("Analyze Risk", type="primary", use_container_width=True)
+            
+        if scan_market:
+            with st.spinner(f"Analyzing supply chains for {commodity_choice}..."):
+                market_data = fetch_market_risk(commodity_choice, api_key)
+                
+            if "error" in market_data:
+                st.error(market_data['error'])
+            else:
+                # 2. Key Metrics Row
+                m1, m2, m3 = st.columns(3)
+                
+                # Risk Score Coloring
+                risk_score = market_data.get('global_risk_score', 0)
+                risk_color = "green" if risk_score < 40 else "orange" if risk_score < 70 else "red"
+                
+                # Outlook Coloring
+                outlook = market_data.get('price_outlook', 'Neutral')
+                outlook_color = "red" if "Bullish" in outlook else "green" # Bullish usually means prices up (bad for buyers)
+                
+                with m1:
+                    st.metric(label="Global Supply Chain Risk", value=f"{risk_score}/100")
+                    st.progress(risk_score)
+                with m2:
+                    st.metric(label="Price Outlook (Geopolitical)", value=outlook)
+                with m3:
+                    st.caption("Analyst Note:")
+                    st.write(f"_{market_data.get('outlook_reason', 'No data')}_")
+                
+                st.divider()
+                
+                # 3. Detailed Producers Table
+                st.subheader(f"🌍 Top Producers & Tension Levels")
+                
+                producers = market_data.get('top_producers', [])
+                if producers:
+                    # Convert to DataFrame for nicer display
+                    df_prod = pd.DataFrame(producers)
+                    
+                    # Apply some styling functions to the dataframe logic
+                    # We will iterate and show custom cards instead of a raw table for better UI
+                    
+                    for p in producers:
+                        t_score = p.get('tension_index', 0)
+                        
+                        # Dynamic Badge
+                        if t_score > 75: badge = "🔴 CRITICAL"
+                        elif t_score > 50: badge = "🟠 HIGH"
+                        else: badge = "🟢 STABLE"
+                        
+                        st.markdown(f"""
+                        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid {get_color(t_score)}">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <h4 style="margin:0;">{p.get('country')}</h4>
+                                <span style="font-size:0.9em; background:#eee; padding:3px 8px; border-radius:5px;">Share: {p.get('production_share')}</span>
+                            </div>
+                            <div style="margin-top: 8px; font-size: 0.95em;">
+                                <b>Tension Score:</b> {t_score} &nbsp;|&nbsp; <b>Status:</b> {badge}
+                            </div>
+                            <div style="margin-top: 5px; color: #666; font-size: 0.9em;">
+                                ⚠️ <i>Risk Factor: {p.get('risk_note')}</i>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.info("No producer data found.")

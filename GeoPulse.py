@@ -88,6 +88,13 @@ def clean_json(text):
         if match: return json.loads(match.group(0))
         return None
 
+def sanitize_input(text, max_len=50):
+    """Sanitize user input to prevent basic LLM prompt injection."""
+    if not text: return ""
+    # Keep only alphanumeric characters, spaces, dashes, and periods
+    sanitized = re.sub(r'[^a-zA-Z0-9\s\.\-]', '', str(text))
+    return sanitized[:max_len].strip()
+
 def fetch_analysis(c1, c2, key, base_url, model):
     if not key: return {"error": "API Key is missing."}
     
@@ -123,8 +130,10 @@ def fetch_analysis(c1, c2, key, base_url, model):
     }
     """
     
+    clean_c1 = sanitize_input(c1)
+    clean_c2 = sanitize_input(c2)
     user_prompt = (
-        f"Analyze {c1} vs {c2}. compare TODAY vs 1 YEAR AGO. "
+        f"Analyze {clean_c1} vs {clean_c2}. compare TODAY vs 1 YEAR AGO. "
         "Provide specific tension scores for both timeframes. "
         "For trade_deficit, provide a single number in Billions (USD)."
     )
@@ -201,7 +210,7 @@ def fetch_market_risk(commodity, key, base_url, model):
             model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Analyze Supply Chain Risk for: {commodity}"}
+                {"role": "user", "content": f"Analyze Supply Chain Risk for: {sanitize_input(commodity, 100)}"}
             ]
         )
         return clean_json(response.choices[0].message.content)

@@ -188,6 +188,7 @@ def fetch_market_risk(commodity, key, base_url, model):
     3. Calculate a "Supply Chain Risk Score" (0-100) for that commodity based on the stability of these key producers.
     4. Predict price impact purely based on geopolitical risk (Bullish=Prices Up/Risk High, Bearish=Prices Down/Oversupply).
     5. Identify 2-4 critical logistical shipping routes or "Choke Points" required for global transport of this commodity and assign a threat score.
+    6. Generate 1 highly disruptive "Black Swan" geopolitical event that could occur in the next 12 months impacting this commodity.
     
     REQUIRED JSON STRUCTURE:
     {
@@ -212,6 +213,13 @@ def fetch_market_risk(commodity, key, base_url, model):
                 "threat_score": Integer (0-100)
             }
         ]
+    ,
+        "black_swan": {
+            "event_name": "String (Catchy title)",
+            "description": "String (What triggers it and how it cascades)",
+            "probability": "String ('Low', 'Medium', 'High')",
+            "price_impact": "String (e.g., '+60% spike')"
+        }
     }
     """
     

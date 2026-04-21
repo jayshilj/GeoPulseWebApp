@@ -471,7 +471,31 @@ elif page == "📈 Market Watchdog":
                         st.info("No producer data found.")
                 
                 with tab_choke:
-                    st.info("Choke point analysis coming soon.")
+                    st.subheader("🚢 Global Choke Point Analysis")
+                    choke_points = market_data.get('choke_points', [])
+                    if choke_points:
+                        for cp in choke_points:
+                            c_score = cp.get('threat_score', 0)
+                            vol = cp.get('volume_flow', 'N/A')
+                            if cp.get('reliance_level') == 'High': rel_color = '#c0392b'
+                            elif cp.get('reliance_level') == 'Medium': rel_color = '#f39c12'
+                            else: rel_color = '#27ae60'
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin-bottom: 15px; text-align: left; border-left: 5px solid {get_color(c_score)};">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                    <h4 style="margin-top: 0; margin-bottom: 8px;">{cp.get('name')}</h4>
+                                    <span style="background: #eef2ff; color: #3b5bdb; font-size: 0.85em; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap;">📦 {vol}</span>
+                                </div>
+                                <div style="font-size: 0.9em; margin-bottom: 10px;">
+                                    <b>Reliance:</b> <span style="color: {rel_color}; font-weight: 700;">{cp.get('reliance_level')}</span>
+                                    &nbsp;|&nbsp;
+                                    <b>Threat Score:</b> {c_score}/100
+                                </div>
+                                <p style="color: #555; font-size: 0.9em; margin-bottom: 0;">{cp.get('current_threat')}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    else:
+                        st.info("No choke point data analyzed.")
                 
                 with tab_swan:
                     st.info("Black Swan simulation coming soon.")

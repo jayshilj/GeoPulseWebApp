@@ -441,38 +441,37 @@ elif page == "📈 Market Watchdog":
                 
                 st.divider()
                 
-                # 3. Detailed Producers Table
-                st.subheader(f"🌍 Top Producers & Tension Levels")
+                # 3. Tabbed Detail View
+                tab_prod, tab_choke, tab_swan = st.tabs(["🌍 Top Producers", "🚢 Logistical Choke Points", "🦢 Black Swan Simulator"])
                 
-                producers = market_data.get('top_producers', [])
-                if producers:
-                    # Convert to DataFrame for nicer display
-                    df_prod = pd.DataFrame(producers)
-                    
-                    # Apply some styling functions to the dataframe logic
-                    # We will iterate and show custom cards instead of a raw table for better UI
-                    
-                    for p in producers:
-                        t_score = p.get('tension_index', 0)
-                        
-                        # Dynamic Badge
-                        if t_score > 75: badge = "🔴 CRITICAL"
-                        elif t_score > 50: badge = "🟠 HIGH"
-                        else: badge = "🟢 STABLE"
-                        
-                        st.markdown(f"""
-                        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid {get_color(t_score)}">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <h4 style="margin:0;">{p.get('country')}</h4>
-                                <span style="font-size:0.9em; background:#eee; padding:3px 8px; border-radius:5px;">Share: {p.get('production_share')}</span>
+                with tab_prod:
+                    st.subheader("🌍 Key Producers & Tension Levels")
+                    producers = market_data.get('top_producers', [])
+                    if producers:
+                        for p in producers:
+                            t_score = p.get('tension_index', 0)
+                            if t_score > 75: badge = "🔴 CRITICAL"
+                            elif t_score > 50: badge = "🟠 HIGH"
+                            else: badge = "🟢 STABLE"
+                            st.markdown(f"""
+                            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid {get_color(t_score)}">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <h4 style="margin:0;">{p.get('country')}</h4>
+                                    <span style="font-size:0.9em; background:#eee; padding:3px 8px; border-radius:5px;">Share: {p.get('production_share')}</span>
+                                </div>
+                                <div style="margin-top: 8px; font-size: 0.95em;">
+                                    <b>Tension Score:</b> {t_score} &nbsp;|&nbsp; <b>Status:</b> {badge}
+                                </div>
+                                <div style="margin-top: 5px; color: #666; font-size: 0.9em;">
+                                    ⚠️ <i>Risk Factor: {p.get('risk_note')}</i>
+                                </div>
                             </div>
-                            <div style="margin-top: 8px; font-size: 0.95em;">
-                                <b>Tension Score:</b> {t_score} &nbsp;|&nbsp; <b>Status:</b> {badge}
-                            </div>
-                            <div style="margin-top: 5px; color: #666; font-size: 0.9em;">
-                                ⚠️ <i>Risk Factor: {p.get('risk_note')}</i>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                else:
-                    st.info("No producer data found.")
+                            """, unsafe_allow_html=True)
+                    else:
+                        st.info("No producer data found.")
+                
+                with tab_choke:
+                    st.info("Choke point analysis coming soon.")
+                
+                with tab_swan:
+                    st.info("Black Swan simulation coming soon.")

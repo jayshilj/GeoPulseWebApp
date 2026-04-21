@@ -187,6 +187,7 @@ def fetch_market_risk(commodity, key, base_url, model):
     2. Analyze the CURRENT geopolitical tension/conflict level for each country.
     3. Calculate a "Supply Chain Risk Score" (0-100) for that commodity based on the stability of these key producers.
     4. Predict price impact purely based on geopolitical risk (Bullish=Prices Up/Risk High, Bearish=Prices Down/Oversupply).
+    5. Identify 2-4 critical logistical shipping routes or "Choke Points" required for global transport of this commodity and assign a threat score.
     
     REQUIRED JSON STRUCTURE:
     {
@@ -200,6 +201,15 @@ def fetch_market_risk(commodity, key, base_url, model):
                 "production_share": "String (e.g. '12%')",
                 "tension_index": Integer (0-100),
                 "risk_note": "String (Specific conflict impacting supply, e.g. 'Red Sea shipping attacks')"
+            }
+        ],
+        "choke_points": [
+            {
+                "name": "String (e.g., 'Strait of Hormuz')",
+                "reliance_level": "String ('High', 'Medium', 'Low')",
+                "volume_flow": "String (e.g., '30% of global seaborne oil')",
+                "current_threat": "String (Context of risk to this route)",
+                "threat_score": Integer (0-100)
             }
         ]
     }

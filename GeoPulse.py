@@ -88,10 +88,14 @@ def clean_json(text):
         if match: return json.loads(match.group(0))
         return None
 
-def fetch_analysis(c1, c2, key):
+def fetch_analysis(c1, c2, key, base_url, model):
     if not key: return {"error": "API Key is missing."}
     
-    client = OpenAI(api_key=key, base_url="https://api.perplexity.ai")
+    # Handle OpenAI base_url requirement (OpenAI client defaults to its own if None)
+    kwargs = {"api_key": key}
+    if base_url:
+        kwargs["base_url"] = base_url
+    client = OpenAI(**kwargs)
     
     system_prompt = """
     You are a Strategic Intelligence Algorithm. Return STRICT JSON.
@@ -127,7 +131,7 @@ def fetch_analysis(c1, c2, key):
     
     try:
         response = client.chat.completions.create(
-            model="sonar-pro",
+            model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -139,25 +143,32 @@ def fetch_analysis(c1, c2, key):
     except Exception as e:
         return {"error": str(e)}
 
-def fetch_global_rankings(key):
+def fetch_global_rankings(key, base_url, model):
     if not key: return None
-    client = OpenAI(api_key=key, base_url="https://api.perplexity.ai")
+    kwargs = {"api_key": key}
+    if base_url:
+        kwargs["base_url"] = base_url
+    client = OpenAI(**kwargs)
+    
     system_prompt = """
     Return STRICT JSON with 'highest_pressure' and 'lowest_pressure' (10 items each).
     Item: {"pair": "Name vs Name", "score": Int (0-100), "reason": "Context"}
     """
     try:
         response = client.chat.completions.create(
-            model="sonar-pro",
+            model=model,
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": "Global Geopolitical Rankings 2025"}]
         )
         return clean_json(response.choices[0].message.content)
     except: return None
 
 # --- NEW FUNCTION: MARKET WATCHDOG ---
-def fetch_market_risk(commodity, key):
+def fetch_market_risk(commodity, key, base_url, model):
     if not key: return {"error": "API Key Missing"}
-    client = OpenAI(api_key=key, base_url="https://api.perplexity.ai")
+    kwargs = {"api_key": key}
+    if base_url:
+        kwargs["base_url"] = base_url
+    client = OpenAI(**kwargs)
     
     system_prompt = """
     You are a Global Commodity Risk Analyst. Return STRICT JSON.
@@ -187,7 +198,7 @@ def fetch_market_risk(commodity, key):
     
     try:
         response = client.chat.completions.create(
-            model="sonar-pro",
+            model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Analyze Supply Chain Risk for: {commodity}"}
@@ -203,7 +214,25 @@ with st.sidebar:
     st.title("GeoPulse")
     st.caption("Strategic Intelligence")
     st.divider()
-    api_key = st.text_input("API Key (Perplexity)", type="password")
+    
+    st.subheader("⚙️ Model Configuration")
+    provider = st.selectbox("LLM Provider", ["Perplexity", "Google", "OpenAI", "DeepSeek"])
+    
+    if provider == "Perplexity":
+        model_options = ["sonar-pro", "sonar"]
+        base_url = "https://api.perplexity.ai"
+    elif provider == "Google":
+        model_options = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash", "gemini-1.5-pro"]
+        base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    elif provider == "OpenAI":
+        model_options = ["gpt-4o", "gpt-4o-mini", "o1-mini"]
+        base_url = None
+    elif provider == "DeepSeek":
+        model_options = ["deepseek-chat", "deepseek-reasoner"]
+        base_url = "https://api.deepseek.com"
+        
+    selected_model = st.selectbox("Model", model_options)
+    api_key = st.text_input(f"API Key ({provider})", type="password")
     st.divider()
     page = st.radio("Module", ["📡 Regional Monitor", "📊 Global Heatmap", "📈 Market Watchdog"])
 
@@ -218,11 +247,11 @@ if page == "📡 Regional Monitor":
         with c2: country_b = st.text_input("Entity B", "India")
         with c3: 
             st.write("##")
-            btn = st.button("Initialize Scan", type="primary", use_container_width=True)
+            btn = st.button("Initialize Scan", type="primary", width="stretch")
 
     if btn and api_key:
         with st.spinner("Retrieving historical cables & current intel..."):
-            data = fetch_analysis(country_a, country_b, api_key)
+            data = fetch_analysis(country_a, country_b, api_key, base_url, selected_model)
         
         if "error" in data:
             st.error(f"Error: {data['error']}")
@@ -257,7 +286,7 @@ if page == "📡 Regional Monitor":
             
             with col_left:
                 # Gauge now shows Delta automatically via Plotly
-                st.plotly_chart(create_gauge(curr, past), use_container_width=True)
+                st.plotly_chart(create_gauge(curr, past), width="stretch")
             
             with col_mid:
                 st.markdown(f"""
@@ -322,7 +351,7 @@ elif page == "📊 Global Heatmap":
         
         if "rankings" not in st.session_state:
             with st.spinner("Scanning global datasets..."):
-                st.session_state.rankings = fetch_global_rankings(api_key)
+                st.session_state.rankings = fetch_global_rankings(api_key, base_url, selected_model)
         
         ranks = st.session_state.rankings
         if ranks:
@@ -331,11 +360,11 @@ elif page == "📊 Global Heatmap":
             with tab1:
                 st.dataframe(pd.DataFrame(ranks.get('highest_pressure', [])), 
                              column_config={"score": st.column_config.ProgressColumn("Tension", min_value=0, max_value=100, format="%d")},
-                             hide_index=True, use_container_width=True)
+                             hide_index=True, width="stretch")
             with tab2:
                 st.dataframe(pd.DataFrame(ranks.get('lowest_pressure', [])),
                              column_config={"score": st.column_config.ProgressColumn("Tension", min_value=0, max_value=100, format="%d")},
-                             hide_index=True, use_container_width=True)
+                             hide_index=True, width="stretch")
 
 # --- PAGE 3: MARKET WATCHDOG (NEW) ---
 elif page == "📈 Market Watchdog":
@@ -354,11 +383,11 @@ elif page == "📈 Market Watchdog":
             )
         with col_btn:
             st.write("##")
-            scan_market = st.button("Analyze Risk", type="primary", use_container_width=True)
+            scan_market = st.button("Analyze Risk", type="primary", width="stretch")
             
         if scan_market:
             with st.spinner(f"Analyzing supply chains for {commodity_choice}..."):
-                market_data = fetch_market_risk(commodity_choice, api_key)
+                market_data = fetch_market_risk(commodity_choice, api_key, base_url, selected_model)
                 
             if "error" in market_data:
                 st.error(market_data['error'])

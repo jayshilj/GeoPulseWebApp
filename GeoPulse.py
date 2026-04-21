@@ -498,4 +498,22 @@ elif page == "📈 Market Watchdog":
                         st.info("No choke point data analyzed.")
                 
                 with tab_swan:
-                    st.info("Black Swan simulation coming soon.")
+                    swan = market_data.get('black_swan', {})
+                    if swan:
+                        st.markdown(f"""
+                        <div style="background-color: #1a1a1a; color: #f1f1f1; padding: 25px; border-radius: 15px; border: 1px solid #333; box-shadow: 0px 10px 20px rgba(0,0,0,0.5);">
+                            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                <span style="font-size: 30px; margin-right: 15px;">🦢</span>
+                                <h3 style="margin: 0; color: #fff;">{swan.get('event_name', 'System Shock')}</h3>
+                            </div>
+                            <div style="background-color: #2d2d2d; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <p style="margin: 0; font-size: 1.05em; line-height: 1.5; color: #ddd;">{swan.get('description', '')}</p>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; border-top: 1px solid #444; padding-top: 15px; font-weight: bold;">
+                                <span style="color: #ffb74d;">Probability: {swan.get('probability', 'N/A')}</span>
+                                <span style="color: #ef5350;">Est. Impact: {swan.get('price_impact', 'N/A')}</span>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.info("No Black Swan scenario generated.")

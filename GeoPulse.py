@@ -169,7 +169,7 @@ def fetch_global_rankings(key, base_url, model):
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": "Global Geopolitical Rankings 2025"}]
         )
         return clean_json(response.choices[0].message.content)
-    except: return None
+    except Exception as e: return None
 
 # --- NEW FUNCTION: MARKET WATCHDOG ---
 def fetch_market_risk(commodity, key, base_url, model):

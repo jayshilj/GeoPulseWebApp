@@ -406,7 +406,7 @@ elif page == "📈 Market Watchdog":
         with col_input:
             commodity_choice = st.selectbox(
                 "Select Commodity to Track:", 
-                ["Crude Oil", "Gold", "Silver", "Semiconductors (Chips)"]
+                ["Crude Oil", "Natural Gas", "Gold", "Silver", "Semiconductors (Chips)", "Lithium"]
             )
         with col_btn:
             st.write("##")

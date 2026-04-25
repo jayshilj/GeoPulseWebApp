@@ -263,6 +263,19 @@ with st.sidebar:
     st.divider()
     page = st.radio("Module", ["📡 Regional Monitor", "📊 Global Heatmap", "📈 Market Watchdog", "🦢 Black Swan Events"])
 
+    st.divider()
+    st.markdown("""
+        <div style="padding: 10px; border-radius: 10px; background-color: #f0f2f6; border: 1px solid #e0e0e0;">
+            <p style="margin-bottom: 5px; font-size: 0.85em; color: #7f8c8d; font-weight: 700;">DEVELOPER</p>
+            <p style="margin-bottom: 10px; font-weight: 600; color: #2c3e50;">Jayshil Jain</p>
+            <div style="display: flex; gap: 10px;">
+                <a href="https://github.com/jayshilj/GeoPulseWebApp" target="_blank"><img src="https://img.icons8.com/material-outlined/24/000000/github.png"/></a>
+                <a href="https://www.linkedin.com/in/jayshiljain/" target="_blank"><img src="https://img.icons8.com/material-outlined/24/000000/linkedin--v1.png"/></a>
+                <a href="https://www.jayshil.com/" target="_blank"><img src="https://img.icons8.com/material-outlined/24/000000/globe.png"/></a>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
 # --- PAGE 1: REGIONAL MONITOR ---
 if page == "📡 Regional Monitor":
     st.title("📡 Regional Analysis")

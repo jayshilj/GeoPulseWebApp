@@ -1,100 +1,101 @@
 🌏 GeoPulse | Strategic Intelligence Dashboard
-GeoPulse is an AI-powered open-source intelligence (OSINT) tool that analyzes geopolitical relations between nations in real-time.
 
-Built with Python and Streamlit, it leverages the Perplexity API (Sonar-Pro) to synthesize diplomatic reports, economic data, and news headlines into a structured, visual dashboard. It provides quantitative tension scores (0-100), historical comparisons (Year-over-Year), and trade deficit estimates.
+GeoPulse is an AI-powered open-source intelligence (OSINT) tool that analyzes geopolitical relations, global trade routes, and commodity risks in real-time.
 
-🚀 Features
-1. 📡 Regional Monitor (Live Dashboard)
-Tension Gauge (0-100): Visualizes the current diplomatic pressure between two entities.
+Built with Python and Streamlit, it leverages multiple LLM providers (Perplexity, Google, OpenAI, DeepSeek) to synthesize diplomatic reports, economic data, and logistical flows into a structured, visual dashboard.
 
-🟢 0-20: Strategic Alliance
+---
 
-🔴 81-100: Active Conflict
+## 🚀 Key Modules
 
-Year-Over-Year (YoY) Comparison: Calculates the delta between today's tension score and the score from exactly one year ago.
+### 1. 📡 Regional Monitor
+- **Tension Gauge (0-100)**: Visualizes the current diplomatic pressure between two entities.
+- **Year-Over-Year (YoY) Comparison**: Calculates the delta between today's tension score and the score from exactly one year ago.
+- **Trade Deficit Estimator**: Provides AI-driven estimates of trade imbalances in Billions USD.
+- **Intelligence Feed**: Fetches real-time news headlines with sources and dates.
 
-Trade Deficit Estimator: Provides an approximate trade deficit figure (in Billions USD) even when exact data is scarce, using AI estimation based on economic reports.
+### 2. 🦢 Black Swan Simulator (NEW)
+- **Dynamic Trade Route Map**: Visualizes major global maritime routes using interactive Plotly Geo-spatial mapping.
+- **Disruption Simulation**: Execute "Black Swan" scenarios (e.g., Suez Blockage, Hormuz Closure) to see real-time route failures.
+- **Cascading Impact Analysis**: A "Micro-Metric" dashboard analyzing ripple effects across Energy, Logistics, Finance, and regional stability.
 
-Intelligence Feed: Fetches the latest relevant news headlines with sources and dates.
+### 3. 📈 Market Watchdog (NEW)
+- **Commodity Risk Assessment**: Analyzes supply chain stability for Crude Oil, Gold, Semiconductors, Lithium, and more.
+- **Choke Point Monitoring**: Identifies threats to critical logistical nodes like the Strait of Malacca or the Panama Canal.
+- **Producer Tension Index**: Tracks the geopolitical stability of top-producing nations for specific commodities.
 
-2. 📊 Global Heatmap
-Top 10 Rankings: Generates dynamic lists of the highest tension zones (Flashpoints) and the most stable alliances globally.
+### 4. 📊 Global Heatmap
+- **Top 10 Rankings**: Dynamic lists of the highest tension flashpoints and the most stable zones globally.
 
-Auto-Refresh: Caches data to save API credits but allows for manual refreshing.
+---
 
-🛠️ Tech Stack
-Frontend: Streamlit (Web UI)
+## 🛠️ Tech Stack
+- **Frontend**: Streamlit (Web UI)
+- **Visualization**: Plotly (Interactive Maps & Gauges)
+- **AI / LLM Support**: 
+  - **Perplexity**: `sonar-pro`
+  - **Google Gemini**: `gemini-1.5-pro`, `gemini-2.0-flash`
+  - **OpenAI**: `gpt-4o`, `o1-mini`
+  - **DeepSeek**: `deepseek-chat`, `deepseek-reasoner`
+- **Data Engine**: Pandas & JSON Processing
 
-Visualization: Plotly (Interactive Gauges)
+---
 
-AI / LLM: Perplexity API (Model: sonar-pro)
+## 📦 Installation
 
-Data Processing: Pandas & JSON
+### Prerequisites
+- Python 3.8+
+- API Key from one of the supported providers (Perplexity, Google, OpenAI, or DeepSeek).
 
-📦 Installation
-Prerequisites
-Python 3.8+ installed on your system.
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/jayshilj/GeoPulseWebApp.git
+cd GeoPulseWebApp
+```
 
-A Perplexity API Key. You can get one here. (You need to add credits to your account).
+### Step 2: Set Up Virtual Environment (Recommended)
+```bash
+python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# Mac/Linux:
+source venv/bin/activate
+```
 
-Step 1: Clone or Download
-Download the project files to your local machine.
+### Step 3: Install Dependencies
+```bash
+pip install -r requirements.txt
+```
 
-Bash
+### Step 4: Run the Application
+```bash
+streamlit run GeoPulse.py
+```
 
-git clone https://github.com/yourusername/geopulse.git
-cd geopulse
-Step 2: Install Dependencies
-Install the required Python libraries using pip.
+---
 
-Bash
+## 🖥️ Usage Guide
+1. **Configure Model**: Select your LLM provider and enter your API Key in the sidebar.
+2. **Select Module**: Choose between Regional Monitor, Global Heatmap, Market Watchdog, or the Black Swan Simulator.
+3. **Execute Scan**: Input your parameters and click "Initialize Scan" or "Analyze Risk".
+4. **Analyze Impacts**: Use the interactive maps and cascading impact cards to assess geopolitical risk.
 
-pip install streamlit plotly pandas openai
-Step 3: Run the Application
-Launch the dashboard using the Streamlit command (do not use python app.py).
+---
 
-Bash
-
-streamlit run app.py
-🖥️ Usage Guide
-Enter API Key: On the left sidebar, paste your Perplexity API Key (starts with pplx-...).
-
-Select Module:
-
-Choose 📡 Regional Monitor to analyze specific countries (e.g., "USA" vs "China").
-
-Choose 📊 Global Heatmap to see top 10 global rankings.
-
-Run Analysis:
-
-Input two country names and click "Initialize Scan".
-
-Wait 5-10 seconds for the AI to research, score, and format the data.
-
-Interpret Results:
-
-Trend Arrow: ⬆ indicates tension is worsening compared to last year. ⬇ indicates improvement.
-
-📂 Project Structure
-Plaintext
-
+## 📂 Project Structure
+```plaintext
 geopulse/
 │
-├── app.py              # Main application logic
+├── GeoPulse.py         # Main application logic & UI
 ├── requirements.txt    # List of dependencies
-└── README.md           # Documentation
-⚠️ Disclaimer
-This tool is for informational purposes only. The data is generated by an Artificial Intelligence (LLM) which researches the internet in real-time. While usually accurate, AI can occasionally hallucinate figures or misinterpret nuanced diplomatic events. Always verify critical data with official government sources (e.g., World Bank, Ministry of External Affairs).
+├── README.md           # Documentation
+└── ISSUES.md           # Known issues & roadmap
+```
 
-🤝 Contributing
+---
+
+## ⚠️ Disclaimer
+This tool is for informational purposes only. Data is generated by LLMs researching the internet in real-time. While highly effective for strategic intelligence, AI can occasionally misinterpret nuanced diplomatic events or hallucinate specific figures. Always verify critical data with official government sources (e.g., World Bank, IMF, Ministry of External Affairs).
+
+## 🤝 Contributing
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
-
-Fork the Project
-
-Create your Feature Branch (git checkout -b feature/AmazingFeature)
-
-Commit your Changes (git commit -m 'Add some AmazingFeature')
-
-Push to the Branch (git push origin feature/AmazingFeature)
-
-Open a Pull Request

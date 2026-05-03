@@ -5,7 +5,16 @@ import json
 import re
 from openai import OpenAI
 from datetime import datetime
+import os
+import time
 
+try:
+    from camel.societies import RolePlaying
+    from camel.models import ModelFactory
+    from camel.types import ModelPlatformType, ModelType
+    CAMEL_AVAILABLE = True
+except ImportError:
+    CAMEL_AVAILABLE = False
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="GeoPulse | Strategic Intelligence",
@@ -234,6 +243,86 @@ def fetch_market_risk(commodity, key, base_url, model):
         return clean_json(response.choices[0].message.content)
     except Exception as e:
         return {"error": str(e)}
+
+# --- NEW FUNCTION: OASIS PANIC SIMULATION ---
+def run_oasis_panic_simulation(scenario, api_key, model_choice):
+    if not CAMEL_AVAILABLE:
+        return [{"role": "System", "content": "CAMEL-AI library is not installed."}]
+    if not api_key:
+        return [{"role": "System", "content": "API Key is missing."}]
+        
+    # We will use the Google Gemini provider for this specific feature if using flash
+    os.environ["GEMINI_API_KEY"] = api_key
+    
+    # Map model name
+    camel_model_type = ModelType.GEMINI_2_5_FLASH
+    if "pro" in model_choice.lower() and "2.5" in model_choice.lower():
+        camel_model_type = ModelType.GEMINI_2_5_PRO
+    elif "flash" in model_choice.lower() and "2.5" in model_choice.lower():
+        camel_model_type = ModelType.GEMINI_2_5_FLASH
+        
+    try:
+        model = ModelFactory.create(
+            model_platform=ModelPlatformType.GEMINI,
+            model_type=camel_model_type,
+            api_key=api_key,
+            model_config_dict={"temperature": 0.7}
+        )
+    except Exception as e:
+        # Fallback to OpenAI if Gemini config fails or the user selected an OpenAI model
+        try:
+            os.environ["OPENAI_API_KEY"] = api_key
+            model = ModelFactory.create(
+                model_platform=ModelPlatformType.DEFAULT,
+                model_type=ModelType.GPT_4O_MINI,
+                api_key=api_key,
+                model_config_dict={"temperature": 0.7}
+            )
+        except Exception as e2:
+            return [{"role": "System", "content": f"Failed to init model: {str(e2)}"}]
+
+    task_prompt = (
+        f"A major global crisis has occurred: {scenario}. "
+        "Discuss the immediate impact on local supply chains, what items will run out first, and how consumers are reacting."
+    )
+    
+    try:
+        role_play_session = RolePlaying(
+            assistant_role_name="Local Retail Store Manager",
+            user_role_name="Anxious Consumer",
+            assistant_agent_kwargs=dict(model=model),
+            user_agent_kwargs=dict(model=model),
+            task_prompt=task_prompt,
+            with_task_specify=False
+        )
+        
+        chat_history = []
+        input_msg = role_play_session.init_chat()
+        
+        chat_turn_limit = 3
+        for _ in range(chat_turn_limit):
+            assistant_response, user_response = role_play_session.step(input_msg)
+            
+            # Record user (Consumer)
+            chat_history.append({
+                "role": "Consumer", 
+                "content": user_response.msg.content.replace("Instruction:", "").strip()
+            })
+            
+            # Record assistant (Manager)
+            chat_history.append({
+                "role": "Manager", 
+                "content": assistant_response.msg.content
+            })
+            
+            input_msg = assistant_response.msg
+            
+            if "TERMINATE" in assistant_response.msg.content:
+                break
+                
+        return chat_history
+    except Exception as e:
+        return [{"role": "System", "content": f"Simulation Error: {str(e)}"}]
 
 # --- SIDEBAR ---
 with st.sidebar:
@@ -775,3 +864,34 @@ elif page == "🦢 Black Swan Events":
     else:
         st.success("### ✅ Global Trade Status: Nominal")
         st.info("Select a scenario from the sidebar to simulate a Black Swan event and observe cascading logistical failures.")
+
+    # 8. Oasis Social Dynamics Simulation
+    st.divider()
+    st.subheader("👥 Social Dynamics Simulation (Oasis/CAMEL-AI)")
+    st.markdown("Run a small-scale multi-agent simulation to observe emergent human behavior, such as localized panic buying.")
+    
+    if st.button("Run Panic Buying Simulation", type="secondary", use_container_width=True):
+        if not api_key:
+            st.warning("Please enter your API Key in the sidebar to run the simulation.")
+        elif scenario == "Baseline (Clear Skies)":
+            st.info("Select a disruptive scenario to trigger panic.")
+        else:
+            with st.spinner("Simulating localized retail panic using CAMEL-AI..."):
+                chat_log = run_oasis_panic_simulation(scenario, api_key, selected_model)
+                
+            if chat_log and isinstance(chat_log, list):
+                if "error" in str(chat_log[0]).lower() or "not installed" in str(chat_log[0]).lower():
+                    st.error(chat_log[0].get('content', 'Error'))
+                else:
+                    st.success("Simulation Complete. Showing emergent dialogue:")
+                    for msg in chat_log:
+                        role = msg.get("role", "")
+                        content = msg.get("content", "")
+                        if role == "Consumer":
+                            st.chat_message("user", avatar="🛒").write(f"**Anxious Consumer:** {content}")
+                        elif role == "Manager":
+                            st.chat_message("assistant", avatar="🏪").write(f"**Store Manager:** {content}")
+                        else:
+                            st.write(content)
+            else:
+                st.error("Failed to generate simulation.")

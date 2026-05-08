@@ -9,7 +9,6 @@ import os
 import time
 import tempfile
 from pyvis.network import Network
-import streamlit.components.v1 as components
 from collections import Counter
 
 try:
@@ -1140,10 +1139,10 @@ elif page == "🦢 Black Swan Events":
             </div>
             """, unsafe_allow_html=True)
             
-            # Render Graph — generate_impact_network now returns HTML string directly
+            # Render Graph via st.html (replaces deprecated components.html)
             try:
                 html_data = generate_impact_network(effective_scenario, graph_data)
-                components.html(html_data, height=820, scrolling=False)
+                st.html(html_data)
             except Exception as e:
                 st.error(f"Failed to generate network graph: {e}")
 

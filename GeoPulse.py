@@ -1096,8 +1096,22 @@ elif page == "🦢 Black Swan Events":
                 with st.spinner("AI is calculating deeper consequences..."):
                     new_data = expand_dynamic_graph_data(st.session_state['bs_graph_data'], api_key, base_url, selected_model)
                     if "error" not in new_data:
-                        st.session_state['bs_graph_data']['nodes'].extend(new_data.get('nodes', []))
-                        st.session_state['bs_graph_data']['edges'].extend(new_data.get('edges', []))
+                        # Deduplicate nodes by id before merging (LLM may repeat existing nodes)
+                        existing_ids = {n["id"] for n in st.session_state['bs_graph_data']['nodes']}
+                        unique_new_nodes = [n for n in new_data.get('nodes', []) if n.get("id") not in existing_ids]
+                        
+                        # Deduplicate edges by (source, target) pair
+                        existing_edges = {
+                            (e["source"], e["target"])
+                            for e in st.session_state['bs_graph_data']['edges']
+                        }
+                        unique_new_edges = [
+                            e for e in new_data.get('edges', [])
+                            if (e.get("source"), e.get("target")) not in existing_edges
+                        ]
+                        
+                        st.session_state['bs_graph_data']['nodes'].extend(unique_new_nodes)
+                        st.session_state['bs_graph_data']['edges'].extend(unique_new_edges)
                         st.session_state['bs_graph_iterations'] += 1
                     else:
                         st.error(f"Expansion Error: {new_data['error']}")

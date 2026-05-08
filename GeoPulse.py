@@ -340,9 +340,7 @@ def run_oasis_panic_simulation(scenario, api_key, model_choice):
     if not api_key:
         return [{"role": "System", "content": "API Key is missing."}]
         
-    # We will use the Google Gemini provider for this specific feature if using flash
-    os.environ["GEMINI_API_KEY"] = api_key
-    
+    # Map model name — pass api_key directly to the SDK, never write to os.environ
     # Map model name
     camel_model_type = ModelType.GEMINI_2_5_FLASH
     if "pro" in model_choice.lower() and "2.5" in model_choice.lower():
@@ -360,7 +358,6 @@ def run_oasis_panic_simulation(scenario, api_key, model_choice):
     except Exception as e:
         # Fallback to OpenAI if Gemini config fails or the user selected an OpenAI model
         try:
-            os.environ["OPENAI_API_KEY"] = api_key
             model = ModelFactory.create(
                 model_platform=ModelPlatformType.DEFAULT,
                 model_type=ModelType.GPT_4O_MINI,

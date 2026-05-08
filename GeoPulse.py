@@ -7,6 +7,9 @@ from openai import OpenAI
 from datetime import datetime
 import os
 import time
+import tempfile
+from pyvis.network import Network
+import streamlit.components.v1 as components
 
 try:
     from camel.societies import RolePlaying
@@ -244,6 +247,55 @@ def fetch_market_risk(commodity, key, base_url, model):
     except Exception as e:
         return {"error": str(e)}
 
+@st.cache_data(show_spinner=False)
+def generate_dynamic_graph_data(event_description, key, base_url, model):
+    if not key: return {"error": "API Key is missing."}
+    
+    kwargs = {"api_key": key}
+    if base_url:
+        kwargs["base_url"] = base_url
+    client = OpenAI(**kwargs)
+    
+    system_prompt = """
+    You are an expert supply chain analyst and systems dynamics modeler. Return STRICT JSON.
+    
+    TASK:
+    Given a Black Swan event description, map out a complex, multi-tiered supply chain reaction network.
+    Show how the event cascades through different entities (Logistics, Industry, Sellers, Consumers, Governments, Commodities).
+    
+    Generate at least 12-15 interconnected nodes and edges.
+    
+    REQUIRED JSON STRUCTURE:
+    {
+        "nodes": [
+            {
+                "id": "String (Unique identifier, e.g. 'Event', 'Maersk', 'EU_Auto', 'Consumers')",
+                "label": "String (Display name, e.g. 'Suez Blockage', 'Global Shippers')",
+                "group": "String (Must be one of: 'Event', 'Logistics', 'Industry', 'Retail', 'Consumer', 'Commodity', 'Government')"
+            }
+        ],
+        "edges": [
+            {
+                "source": "String (Must match a node id)",
+                "target": "String (Must match a node id)",
+                "label": "String (Action/Reaction, e.g. 'HALTS', 'DELAYS_PARTS', 'PANIC_BUYS', 'INCREASES_COST')"
+            }
+        ]
+    }
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Map the cascading supply chain reactions for this event: {sanitize_input(event_description, 200)}"}
+            ]
+        )
+        return clean_json(response.choices[0].message.content)
+    except Exception as e:
+        return {"error": str(e)}
+
 # --- NEW FUNCTION: OASIS PANIC SIMULATION ---
 def run_oasis_panic_simulation(scenario, api_key, model_choice):
     if not CAMEL_AVAILABLE:
@@ -323,6 +375,49 @@ def run_oasis_panic_simulation(scenario, api_key, model_choice):
         return chat_history
     except Exception as e:
         return [{"role": "System", "content": f"Simulation Error: {str(e)}"}]
+
+def generate_impact_network(scenario_name, graph_data):
+    # Use a modern dark theme background with high contrast text
+    net = Network(height="800px", width="100%", bgcolor="#0d1117", font_color="#e6edf3", select_menu=True, cdn_resources='remote')
+    
+    # Increase spring length and reduce central gravity to make the graph spread out much wider
+    net.force_atlas_2based(gravity=-80, central_gravity=0.005, spring_length=250, spring_strength=0.05, damping=0.4, overlap=0)
+    
+    # Modern, bright, high-contrast palette for readability
+    group_colors = {
+        "Event": "#ff4757",       # Vibrant Coral Red
+        "Logistics": "#1e90ff",   # Dodger Blue
+        "Industry": "#ffa502",    # Golden Orange
+        "Retail": "#eccc68",      # Bright Sunflower
+        "Consumer": "#9c88ff",    # Light Purple
+        "Commodity": "#2ed573",   # Bright Mint Green
+        "Government": "#a4b0be"   # Cool Gray
+    }
+    
+    if "nodes" in graph_data and "edges" in graph_data:
+        for node in graph_data["nodes"]:
+            n_id = node.get("id", "")
+            label = node.get("label", n_id)
+            group = node.get("group", "Industry")
+            color = group_colors.get(group, "#95a5a6")
+            
+            size = 35 if group == "Event" else 25
+            shape = "dot"
+            font_config = {"size": 20, "face": "Segoe UI, sans-serif", "color": "#ffffff"}
+            net.add_node(n_id, label=label, title=f"Group: {group}", color=color, size=size, shape=shape, font=font_config)
+            
+        for edge in graph_data["edges"]:
+            src = edge.get("source")
+            tgt = edge.get("target")
+            lbl = edge.get("label", "")
+            
+            if src and tgt:
+                edge_font = {"size": 12, "color": "#8b949e", "face": "Segoe UI, sans-serif"}
+                net.add_edge(src, tgt, label=lbl, color="#4b5563", title=lbl, font=edge_font)
+                
+    path = os.path.join(tempfile.gettempdir(), f"impact_network_{hash(scenario_name)}.html")
+    net.save_graph(path)
+    return path
 
 # --- SIDEBAR ---
 with st.sidebar:
@@ -625,21 +720,47 @@ elif page == "🦢 Black Swan Events":
     st.title("🦢 Black Swan Simulator")
     st.markdown("Visualize the impact of catastrophic geopolitical shocks on global trade routes and logistical flows.")
 
-    # 1. Simulator Controls
-    with st.sidebar:
-        st.divider()
-        st.subheader("🛠️ Scenario Configuration")
+    # Layout Setup
+    col_map, col_controls = st.columns([3.5, 1.5], gap="large")
+    
+    # 1. Simulator Controls (Right Side)
+    with col_controls:
+        st.markdown("""
+        <div style="background-color: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05); margin-bottom: 15px;">
+            <h3 style="margin-top:0; color:#2c3e50; font-size: 1.25rem;">🛠️ Scenario Config</h3>
+            <p style="font-size: 0.9em; color: #7f8c8d; margin-bottom: 5px;">Select a global choke point to disrupt and simulate the cascading impacts.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
         scenario = st.selectbox(
-            "Select Scenario:",
+            "Select Global Shock:",
             [
                 "Baseline (Clear Skies)",
                 "Suez Canal Total Blockage",
                 "Strait of Hormuz Closure",
                 "Malacca Strait Conflict",
-                "Panama Canal Drought/Shutdown"
-            ]
+                "Panama Canal Drought/Shutdown",
+                "Custom Event"
+            ],
+            label_visibility="collapsed"
         )
-        run_sim = st.button("Execute Scenario", type="primary", use_container_width=True)
+        
+        custom_scenario_text = ""
+        if scenario == "Custom Event":
+            custom_scenario_text = st.text_input("Enter Custom Event:", placeholder="e.g. Global Internet Outage")
+        
+        # We define a variable to hold the effective scenario name
+        effective_scenario = custom_scenario_text if scenario == "Custom Event" and custom_scenario_text else scenario
+        
+        st.write("##")
+        run_sim = st.button("🚀 Execute Scenario", type="primary", use_container_width=True)
+        
+        st.markdown("""
+        <div style="margin-top: 20px; padding: 15px; background-color: #fff3e0; border-left: 4px solid #ef6c00; border-radius: 4px;">
+            <span style="color: #e65100; font-weight: bold; font-size: 0.9em;">Simulation Engine Active</span><br>
+            <span style="color: #555; font-size: 0.8em;">Powered by GeoPulse & CAMEL-AI</span>
+        </div>
+        """, unsafe_allow_html=True)
         
     # 2. Data Definition
     choke_points = {
@@ -685,7 +806,7 @@ elif page == "🦢 Black Swan Events":
     elif scenario == "Panama Canal Drought/Shutdown": blocked_cp = "Panama Canal"
 
     # 4. Impact Metrics
-    m1, m2, m3, m4 = st.columns(4)
+    m1, m2, m3, m4 = col_map.columns(4)
     if blocked_cp:
         delay = "12-18 Days" if "Suez" in blocked_cp else "8-12 Days"
         cost = "+45%" if "Hormuz" in blocked_cp else "+25%"
@@ -766,7 +887,7 @@ elif page == "🦢 Black Swan Events":
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    col_map.plotly_chart(fig, use_container_width=True)
 
     # 6. Cascading Impacts (Micro-Fish Inspiration)
     st.divider()
@@ -841,7 +962,27 @@ elif page == "🦢 Black Swan Events":
                 </div>
                 """, unsafe_allow_html=True)
     else:
-        st.info("No cascading impacts analyzed for the current scenario. Select a critical event to see ripple effects.")
+        st.info("No predefined cascading impacts analyzed for the current scenario. Wait for the AI to map it below!")
+
+    # --- NEW: Mirofish-Style Interactive Network Graph ---
+    st.write("##")
+    st.markdown("#### 🔗 Interactive Relationship Graph")
+    if effective_scenario and effective_scenario != "Baseline (Clear Skies)":
+        with st.spinner(f"AI is modeling supply chain reactions for: {effective_scenario}..."):
+            try:
+                # 1. Fetch JSON structure from LLM
+                graph_data = generate_dynamic_graph_data(effective_scenario, api_key, base_url, selected_model)
+                
+                # 2. Render it via pyvis
+                if "error" in graph_data:
+                    st.error(f"AI Generation Error: {graph_data['error']}")
+                else:
+                    graph_path = generate_impact_network(effective_scenario, graph_data)
+                    with open(graph_path, 'r', encoding='utf-8') as f:
+                        html_data = f.read()
+                    components.html(html_data, height=820, scrolling=False)
+            except Exception as e:
+                st.error(f"Failed to generate network graph: {e}")
 
     # 7. Analysis Context
     if blocked_cp:

@@ -509,9 +509,18 @@ def generate_impact_network(scenario_name, graph_data):
                     hoverWidth=3
                 )
                 
-    path = os.path.join(tempfile.gettempdir(), f"impact_network_{hash(scenario_name)}.html")
-    net.save_graph(path)
-    return path
+    # Write to a temporary file, read into memory, then delete immediately.
+    # This avoids persistent HTML artifacts accumulating in the temp directory.
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as tmp:
+        tmp_path = tmp.name
+    net.save_graph(tmp_path)
+    with open(tmp_path, "r", encoding="utf-8") as f:
+        html_content = f.read()
+    try:
+        os.remove(tmp_path)
+    except OSError:
+        pass  # Non-critical if cleanup fails
+    return html_content
 
 # --- SIDEBAR ---
 with st.sidebar:
@@ -1131,11 +1140,9 @@ elif page == "🦢 Black Swan Events":
             </div>
             """, unsafe_allow_html=True)
             
-            # Render Graph
+            # Render Graph — generate_impact_network now returns HTML string directly
             try:
-                graph_path = generate_impact_network(effective_scenario, graph_data)
-                with open(graph_path, 'r', encoding='utf-8') as f:
-                    html_data = f.read()
+                html_data = generate_impact_network(effective_scenario, graph_data)
                 components.html(html_data, height=820, scrolling=False)
             except Exception as e:
                 st.error(f"Failed to generate network graph: {e}")

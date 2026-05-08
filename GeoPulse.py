@@ -98,7 +98,8 @@ def clean_json(text):
         if match: return json.loads(match.group(1))
         match = re.search(r'\{.*\}', text, re.DOTALL)
         if match: return json.loads(match.group(0))
-        return None
+        # Return a structured error dict — consistent with all other API functions
+        return {"error": "Failed to parse AI response as JSON."}
 
 def sanitize_input(text, max_len=50):
     """Sanitize user input to prevent basic LLM prompt injection."""
@@ -411,6 +412,8 @@ def run_oasis_panic_simulation(scenario, api_key, model_choice):
         return [{"role": "System", "content": f"Simulation Error: {str(e)}"}]
 
 def generate_impact_network(scenario_name, graph_data):
+    if not graph_data or not isinstance(graph_data, dict):
+        raise ValueError("generate_impact_network received invalid graph_data (None or non-dict).")
     # Clean off-white professional background
     net = Network(height="850px", width="100%", bgcolor="#f4f6f8", font_color="#2c3e50", select_menu=False, cdn_resources='remote')
     

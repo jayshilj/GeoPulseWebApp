@@ -853,11 +853,18 @@ elif page == "🦢 Black Swan Events":
             st.session_state['bs_graph_iterations'] = 0
         if 'bs_scenario' not in st.session_state:
             st.session_state['bs_scenario'] = None
-            
-        if run_sim or st.session_state['bs_scenario'] != effective_scenario:
+        if 'bs_model_key' not in st.session_state:
+            st.session_state['bs_model_key'] = None
+        
+        # Invalidate graph if scenario, provider, or model changes
+        current_model_key = f"{provider}:{selected_model}"
+        if (run_sim
+                or st.session_state['bs_scenario'] != effective_scenario
+                or st.session_state['bs_model_key'] != current_model_key):
             st.session_state['bs_graph_data'] = None
             st.session_state['bs_graph_iterations'] = 0
             st.session_state['bs_scenario'] = effective_scenario
+            st.session_state['bs_model_key'] = current_model_key
         
         st.markdown("""
         <div style="margin-top: 20px; padding: 15px; background-color: #fff3e0; border-left: 4px solid #ef6c00; border-radius: 4px;">

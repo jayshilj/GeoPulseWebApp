@@ -1079,72 +1079,75 @@ elif page == "🦢 Black Swan Events":
     else:
         st.info("No predefined cascading impacts analyzed for the current scenario. Wait for the AI to map it below!")
 
-    # --- NEW: Mirofish-Style Interactive Network Graph ---
+    # --- Interactive Network Graph ---
     st.write("##")
     st.markdown("#### 🔗 Interactive Relationship Graph")
     if effective_scenario and effective_scenario != "Baseline (Clear Skies)":
-        
-        # 1. Ensure Initial Data Exists
-        if not st.session_state.get('bs_graph_data'):
-            with st.spinner(f"AI is modeling initial supply chain reactions..."):
-                st.session_state['bs_graph_data'] = generate_dynamic_graph_data(effective_scenario, api_key, base_url, selected_model)
+        # Guard: require API key before attempting any graph generation
+        if not api_key:
+            st.warning("⚠️ **API Key Required** — Please configure your API key in the sidebar (⚙️ Model Configuration) to generate the interactive supply chain graph.")
+        else:
+            # 1. Ensure Initial Data Exists
+            if not st.session_state.get('bs_graph_data'):
+                with st.spinner(f"AI is modeling initial supply chain reactions..."):
+                    st.session_state['bs_graph_data'] = generate_dynamic_graph_data(effective_scenario, api_key, base_url, selected_model)
 
-        # 2. Render UI Controls
-        col_title, col_btn = st.columns([3, 1])
-        expand_clicked = False
-        with col_btn:
-            iters = st.session_state.get('bs_graph_iterations', 0)
-            if iters < 3 and st.session_state.get('bs_graph_data') and "error" not in st.session_state.get('bs_graph_data'):
-                expand_clicked = st.button(f"🕸️ Expand Reactions ({iters}/3)", width='stretch')
-            elif iters >= 3:
-                st.button("Max Expansions Reached", disabled=True, width='stretch')
-        
-        # 3. Handle Expansion Logic
-        if expand_clicked:
-            with st.spinner("AI is calculating deeper consequences..."):
-                new_data = expand_dynamic_graph_data(st.session_state['bs_graph_data'], api_key, base_url, selected_model)
-                if "error" not in new_data:
-                    st.session_state['bs_graph_data']['nodes'].extend(new_data.get('nodes', []))
-                    st.session_state['bs_graph_data']['edges'].extend(new_data.get('edges', []))
-                    st.session_state['bs_graph_iterations'] += 1
-                else:
-                    st.error(f"Expansion Error: {new_data['error']}")
-        
-        # 4. Render Graph Stats & Pyvis Graph
-        graph_data = st.session_state.get('bs_graph_data')
-        if graph_data and "error" in graph_data:
-            st.error(f"AI Generation Error: {graph_data['error']}")
-        elif graph_data:
-            # Render Stats
-            nodes_count = len(graph_data.get('nodes', []))
-            edges_count = len(graph_data.get('edges', []))
+            # 2. Render UI Controls
+            col_title, col_btn = st.columns([3, 1])
+            expand_clicked = False
+            with col_btn:
+                iters = st.session_state.get('bs_graph_iterations', 0)
+                if iters < 3 and st.session_state.get('bs_graph_data') and "error" not in st.session_state.get('bs_graph_data'):
+                    expand_clicked = st.button(f"🕸️ Expand Reactions ({iters}/3)", width='stretch')
+                elif iters >= 3:
+                    st.button("Max Expansions Reached", disabled=True, width='stretch')
             
-            groups = [n.get('group', 'Unknown') for n in graph_data.get('nodes', []) if n.get('group') != 'Event']
-            most_impacted = Counter(groups).most_common(1)[0][0] if groups else "N/A"
+            # 3. Handle Expansion Logic
+            if expand_clicked:
+                with st.spinner("AI is calculating deeper consequences..."):
+                    new_data = expand_dynamic_graph_data(st.session_state['bs_graph_data'], api_key, base_url, selected_model)
+                    if "error" not in new_data:
+                        st.session_state['bs_graph_data']['nodes'].extend(new_data.get('nodes', []))
+                        st.session_state['bs_graph_data']['edges'].extend(new_data.get('edges', []))
+                        st.session_state['bs_graph_iterations'] += 1
+                    else:
+                        st.error(f"Expansion Error: {new_data['error']}")
             
-            st.markdown(f"""
-            <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-                <div style="flex: 1; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; border-left: 4px solid #e74c3c;">
-                    <p style="margin: 0; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase;">Total Entities Affected</p>
-                    <h3 style="margin: 5px 0 0 0; color: #2c3e50;">{nodes_count}</h3>
+            # 4. Render Graph Stats & Pyvis Graph
+            graph_data = st.session_state.get('bs_graph_data')
+            if graph_data and "error" in graph_data:
+                st.error(f"AI Generation Error: {graph_data['error']}")
+            elif graph_data:
+                # Render Stats
+                nodes_count = len(graph_data.get('nodes', []))
+                edges_count = len(graph_data.get('edges', []))
+                
+                groups = [n.get('group', 'Unknown') for n in graph_data.get('nodes', []) if n.get('group') != 'Event']
+                most_impacted = Counter(groups).most_common(1)[0][0] if groups else "N/A"
+                
+                st.markdown(f"""
+                <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                    <div style="flex: 1; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; border-left: 4px solid #e74c3c;">
+                        <p style="margin: 0; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase;">Total Entities Affected</p>
+                        <h3 style="margin: 5px 0 0 0; color: #2c3e50;">{nodes_count}</h3>
+                    </div>
+                    <div style="flex: 1; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; border-left: 4px solid #2980b9;">
+                        <p style="margin: 0; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase;">Cascading Reactions</p>
+                        <h3 style="margin: 5px 0 0 0; color: #2c3e50;">{edges_count}</h3>
+                    </div>
+                    <div style="flex: 1; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; border-left: 4px solid #f39c12;">
+                        <p style="margin: 0; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase;">Most Impacted Sector</p>
+                        <h3 style="margin: 5px 0 0 0; color: #2c3e50;">{most_impacted}</h3>
+                    </div>
                 </div>
-                <div style="flex: 1; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; border-left: 4px solid #2980b9;">
-                    <p style="margin: 0; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase;">Cascading Reactions</p>
-                    <h3 style="margin: 5px 0 0 0; color: #2c3e50;">{edges_count}</h3>
-                </div>
-                <div style="flex: 1; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; border-left: 4px solid #f39c12;">
-                    <p style="margin: 0; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase;">Most Impacted Sector</p>
-                    <h3 style="margin: 5px 0 0 0; color: #2c3e50;">{most_impacted}</h3>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Render Graph via st.html (replaces deprecated components.html)
-            try:
-                html_data = generate_impact_network(effective_scenario, graph_data)
-                st.html(html_data)
-            except Exception as e:
-                st.error(f"Failed to generate network graph: {e}")
+                """, unsafe_allow_html=True)
+                
+                # Render Graph via st.html (replaces deprecated components.html)
+                try:
+                    html_data = generate_impact_network(effective_scenario, graph_data)
+                    st.html(html_data)
+                except Exception as e:
+                    st.error(f"Failed to generate network graph: {e}")
 
     # 7. Analysis Context
     if blocked_cp:

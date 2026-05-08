@@ -856,7 +856,7 @@ elif page == "🦢 Black Swan Events":
         effective_scenario = custom_scenario_text if scenario == "Custom Event" and custom_scenario_text else scenario
         
         st.write("##")
-        run_sim = st.button("🚀 Execute Scenario", type="primary", use_container_width=True)
+        run_sim = st.button("🚀 Execute Scenario", type="primary", width='stretch')
         
         # Initialize graph session state
         if 'bs_graph_data' not in st.session_state:
@@ -1096,9 +1096,9 @@ elif page == "🦢 Black Swan Events":
         with col_btn:
             iters = st.session_state.get('bs_graph_iterations', 0)
             if iters < 3 and st.session_state.get('bs_graph_data') and "error" not in st.session_state.get('bs_graph_data'):
-                expand_clicked = st.button(f"🕸️ Expand Reactions ({iters}/3)", use_container_width=True)
+                expand_clicked = st.button(f"🕸️ Expand Reactions ({iters}/3)", width='stretch')
             elif iters >= 3:
-                st.button("Max Expansions Reached", disabled=True, use_container_width=True)
+                st.button("Max Expansions Reached", disabled=True, width='stretch')
         
         # 3. Handle Expansion Logic
         if expand_clicked:
@@ -1174,7 +1174,7 @@ elif page == "🦢 Black Swan Events":
     st.subheader("👥 Social Dynamics Simulation (Oasis/CAMEL-AI)")
     st.markdown("Run a small-scale multi-agent simulation to observe emergent human behavior, such as localized panic buying.")
     
-    if st.button("Run Panic Buying Simulation", type="secondary", use_container_width=True):
+    if st.button("Run Panic Buying Simulation", type="secondary", width='stretch'):
         if not api_key:
             st.warning("Please enter your API Key in the sidebar to run the simulation.")
         elif scenario == "Baseline (Clear Skies)":

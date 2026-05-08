@@ -572,7 +572,7 @@ if page == "📡 Regional Monitor":
         with c1: country_a = st.text_input("Entity A", "USA")
         with c2: country_b = st.text_input("Entity B", "India")
         with c3: 
-            st.write("##")
+            st.markdown("---")
             btn = st.button("Initialize Scan", type="primary", width="stretch")
 
     if btn and api_key:
@@ -708,7 +708,7 @@ elif page == "📈 Market Watchdog":
                 ["Crude Oil", "Natural Gas", "Gold", "Silver", "Semiconductors (Chips)", "Lithium"]
             )
         with col_btn:
-            st.write("##")
+            st.markdown("---")
             scan_market = st.button("Analyze Risk", type="primary", width="stretch")
             
         if scan_market:
@@ -854,7 +854,7 @@ elif page == "🦢 Black Swan Events":
         # We define a variable to hold the effective scenario name
         effective_scenario = custom_scenario_text if scenario == "Custom Event" and custom_scenario_text else scenario
         
-        st.write("##")
+        st.markdown("---")
         run_sim = st.button("🚀 Execute Scenario", type="primary", width='stretch')
         
         # Initialize graph session state
@@ -1080,7 +1080,7 @@ elif page == "🦢 Black Swan Events":
         st.info("No predefined cascading impacts analyzed for the current scenario. Wait for the AI to map it below!")
 
     # --- Interactive Network Graph ---
-    st.write("##")
+    st.markdown("---")
     st.markdown("#### 🔗 Interactive Relationship Graph")
     if effective_scenario and effective_scenario != "Baseline (Clear Skies)":
         # Guard: require API key before attempting any graph generation

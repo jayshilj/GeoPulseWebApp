@@ -10,6 +10,7 @@ import time
 import tempfile
 from pyvis.network import Network
 import streamlit.components.v1 as components
+from collections import Counter
 
 try:
     from camel.societies import RolePlaying
@@ -247,7 +248,6 @@ def fetch_market_risk(commodity, key, base_url, model):
     except Exception as e:
         return {"error": str(e)}
 
-@st.cache_data(show_spinner=False)
 def generate_dynamic_graph_data(event_description, key, base_url, model):
     if not key: return {"error": "API Key is missing."}
     
@@ -290,6 +290,55 @@ def generate_dynamic_graph_data(event_description, key, base_url, model):
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Map the cascading supply chain reactions for this event: {sanitize_input(event_description, 200)}"}
+            ]
+        )
+        return clean_json(response.choices[0].message.content)
+    except Exception as e:
+        return {"error": str(e)}
+
+def expand_dynamic_graph_data(existing_graph_json, key, base_url, model):
+    if not key: return {"error": "API Key is missing."}
+    
+    kwargs = {"api_key": key}
+    if base_url:
+        kwargs["base_url"] = base_url
+    client = OpenAI(**kwargs)
+    
+    system_prompt = """
+    You are an expert supply chain analyst and systems dynamics modeler. Return STRICT JSON.
+    
+    TASK:
+    You will be provided with an existing JSON graph of a supply chain reaction network.
+    Your job is to ITERATE and EXPAND the graph by identifying the "leaf nodes" (nodes that don't have many outgoing edges) and generating 5-10 NEW cascading consequences that stem from them.
+    
+    Do NOT return the old nodes and edges. Return ONLY the NEW nodes and NEW edges.
+    Make sure the 'source' of your new edges exactly matches the 'id' of existing nodes in the provided graph, or the 'id' of new nodes you create.
+    
+    REQUIRED JSON STRUCTURE:
+    {
+        "nodes": [
+            {
+                "id": "String",
+                "label": "String",
+                "group": "String (Must be one of: 'Event', 'Logistics', 'Industry', 'Retail', 'Consumer', 'Commodity', 'Government')"
+            }
+        ],
+        "edges": [
+            {
+                "source": "String",
+                "target": "String",
+                "label": "String"
+            }
+        ]
+    }
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Here is the existing graph. Expand it by adding new cascading reactions:\n{json.dumps(existing_graph_json)}"}
             ]
         )
         return clean_json(response.choices[0].message.content)
@@ -377,43 +426,88 @@ def run_oasis_panic_simulation(scenario, api_key, model_choice):
         return [{"role": "System", "content": f"Simulation Error: {str(e)}"}]
 
 def generate_impact_network(scenario_name, graph_data):
-    # Use a modern dark theme background with high contrast text
-    net = Network(height="800px", width="100%", bgcolor="#0d1117", font_color="#e6edf3", select_menu=True, cdn_resources='remote')
+    # Clean off-white professional background
+    net = Network(height="850px", width="100%", bgcolor="#f4f6f8", font_color="#2c3e50", select_menu=False, cdn_resources='remote')
     
-    # Increase spring length and reduce central gravity to make the graph spread out much wider
-    net.force_atlas_2based(gravity=-80, central_gravity=0.005, spring_length=250, spring_strength=0.05, damping=0.4, overlap=0)
+    # Well-spaced, stable physics layout
+    net.force_atlas_2based(gravity=-55, central_gravity=0.012, spring_length=200, spring_strength=0.055, damping=0.5, overlap=0.8)
     
-    # Modern, bright, high-contrast palette for readability
+    # Professional color palette (bg, border)
     group_colors = {
-        "Event": "#ff4757",       # Vibrant Coral Red
-        "Logistics": "#1e90ff",   # Dodger Blue
-        "Industry": "#ffa502",    # Golden Orange
-        "Retail": "#eccc68",      # Bright Sunflower
-        "Consumer": "#9c88ff",    # Light Purple
-        "Commodity": "#2ed573",   # Bright Mint Green
-        "Government": "#a4b0be"   # Cool Gray
+        "Event":      ("#c0392b", "#922b21"),
+        "Logistics":  ("#2471a3", "#1a5276"),
+        "Industry":   ("#ca6f1e", "#a04000"),
+        "Retail":     ("#b7950b", "#9a7d0a"),
+        "Consumer":   ("#7d3c98", "#6c3483"),
+        "Commodity":  ("#1e8449", "#196f3d"),
+        "Government": ("#566573", "#4d5656"),
     }
     
     if "nodes" in graph_data and "edges" in graph_data:
+        # Pre-compute degree for proportional node sizing
+        degree = {}
+        for edge in graph_data["edges"]:
+            for key in ("source", "target"):
+                nid = edge.get(key)
+                if nid:
+                    degree[nid] = degree.get(nid, 0) + 1
+
         for node in graph_data["nodes"]:
-            n_id = node.get("id", "")
+            n_id  = node.get("id", "")
             label = node.get("label", n_id)
             group = node.get("group", "Industry")
-            color = group_colors.get(group, "#95a5a6")
+            bg, border = group_colors.get(group, ("#95a5a6", "#7f8c8d"))
+            node_degree = degree.get(n_id, 1)
             
-            size = 35 if group == "Event" else 25
-            shape = "dot"
-            font_config = {"size": 20, "face": "Segoe UI, sans-serif", "color": "#ffffff"}
-            net.add_node(n_id, label=label, title=f"Group: {group}", color=color, size=size, shape=shape, font=font_config)
+            if group == "Event":
+                # Prominent labeled box for the root event
+                net.add_node(
+                    n_id,
+                    label=f"⚡  {label}",
+                    title=f"ROOT EVENT: {label}",
+                    shape="box",
+                    color={"background": bg, "border": border,
+                           "highlight": {"background": "#e74c3c", "border": border},
+                           "hover":     {"background": "#e74c3c", "border": border}},
+                    font={"size": 15, "face": "Segoe UI, sans-serif", "color": "#ffffff", "bold": True},
+                    margin={"top": 12, "bottom": 12, "left": 16, "right": 16},
+                    borderWidth=3,
+                    shadow={"enabled": True, "color": "rgba(192,57,43,0.4)", "size": 12, "x": 3, "y": 3}
+                )
+            else:
+                # Degree-proportional dots; label floats neatly beneath
+                size = max(18, min(48, 16 + node_degree * 5))
+                net.add_node(
+                    n_id,
+                    label=label,
+                    title=f"{group}  |  {node_degree} connection{'s' if node_degree != 1 else ''}",
+                    shape="dot",
+                    size=size,
+                    color={"background": bg, "border": border,
+                           "highlight": {"background": bg,     "border": "#2c3e50"},
+                           "hover":     {"background": border, "border": "#2c3e50"}},
+                    font={"size": 12, "face": "Segoe UI, sans-serif", "color": "#1a1a2e",
+                          "bold": True, "vadjust": size + 10},
+                    borderWidth=2,
+                    shadow={"enabled": True, "color": "rgba(0,0,0,0.10)", "size": 5, "x": 2, "y": 2}
+                )
             
         for edge in graph_data["edges"]:
             src = edge.get("source")
             tgt = edge.get("target")
             lbl = edge.get("label", "")
-            
             if src and tgt:
-                edge_font = {"size": 12, "color": "#8b949e", "face": "Segoe UI, sans-serif"}
-                net.add_edge(src, tgt, label=lbl, color="#4b5563", title=lbl, font=edge_font)
+                # Labels in tooltip — keeps the canvas completely clean
+                net.add_edge(
+                    src, tgt,
+                    label="",
+                    title=lbl,
+                    color={"color": "#c5cdd2", "highlight": "#566573", "hover": "#566573"},
+                    arrows={"to": {"enabled": True, "scaleFactor": 0.55, "type": "arrow"}},
+                    smooth={"type": "dynamic"},
+                    width=1.5,
+                    hoverWidth=3
+                )
                 
     path = os.path.join(tempfile.gettempdir(), f"impact_network_{hash(scenario_name)}.html")
     net.save_graph(path)
@@ -755,6 +849,19 @@ elif page == "🦢 Black Swan Events":
         st.write("##")
         run_sim = st.button("🚀 Execute Scenario", type="primary", use_container_width=True)
         
+        # Initialize graph session state
+        if 'bs_graph_data' not in st.session_state:
+            st.session_state['bs_graph_data'] = None
+        if 'bs_graph_iterations' not in st.session_state:
+            st.session_state['bs_graph_iterations'] = 0
+        if 'bs_scenario' not in st.session_state:
+            st.session_state['bs_scenario'] = None
+            
+        if run_sim or st.session_state['bs_scenario'] != effective_scenario:
+            st.session_state['bs_graph_data'] = None
+            st.session_state['bs_graph_iterations'] = 0
+            st.session_state['bs_scenario'] = effective_scenario
+        
         st.markdown("""
         <div style="margin-top: 20px; padding: 15px; background-color: #fff3e0; border-left: 4px solid #ef6c00; border-radius: 4px;">
             <span style="color: #e65100; font-weight: bold; font-size: 0.9em;">Simulation Engine Active</span><br>
@@ -968,19 +1075,68 @@ elif page == "🦢 Black Swan Events":
     st.write("##")
     st.markdown("#### 🔗 Interactive Relationship Graph")
     if effective_scenario and effective_scenario != "Baseline (Clear Skies)":
-        with st.spinner(f"AI is modeling supply chain reactions for: {effective_scenario}..."):
-            try:
-                # 1. Fetch JSON structure from LLM
-                graph_data = generate_dynamic_graph_data(effective_scenario, api_key, base_url, selected_model)
-                
-                # 2. Render it via pyvis
-                if "error" in graph_data:
-                    st.error(f"AI Generation Error: {graph_data['error']}")
+        
+        # 1. Ensure Initial Data Exists
+        if not st.session_state.get('bs_graph_data'):
+            with st.spinner(f"AI is modeling initial supply chain reactions..."):
+                st.session_state['bs_graph_data'] = generate_dynamic_graph_data(effective_scenario, api_key, base_url, selected_model)
+
+        # 2. Render UI Controls
+        col_title, col_btn = st.columns([3, 1])
+        expand_clicked = False
+        with col_btn:
+            iters = st.session_state.get('bs_graph_iterations', 0)
+            if iters < 3 and st.session_state.get('bs_graph_data') and "error" not in st.session_state.get('bs_graph_data'):
+                expand_clicked = st.button(f"🕸️ Expand Reactions ({iters}/3)", use_container_width=True)
+            elif iters >= 3:
+                st.button("Max Expansions Reached", disabled=True, use_container_width=True)
+        
+        # 3. Handle Expansion Logic
+        if expand_clicked:
+            with st.spinner("AI is calculating deeper consequences..."):
+                new_data = expand_dynamic_graph_data(st.session_state['bs_graph_data'], api_key, base_url, selected_model)
+                if "error" not in new_data:
+                    st.session_state['bs_graph_data']['nodes'].extend(new_data.get('nodes', []))
+                    st.session_state['bs_graph_data']['edges'].extend(new_data.get('edges', []))
+                    st.session_state['bs_graph_iterations'] += 1
                 else:
-                    graph_path = generate_impact_network(effective_scenario, graph_data)
-                    with open(graph_path, 'r', encoding='utf-8') as f:
-                        html_data = f.read()
-                    components.html(html_data, height=820, scrolling=False)
+                    st.error(f"Expansion Error: {new_data['error']}")
+        
+        # 4. Render Graph Stats & Pyvis Graph
+        graph_data = st.session_state.get('bs_graph_data')
+        if graph_data and "error" in graph_data:
+            st.error(f"AI Generation Error: {graph_data['error']}")
+        elif graph_data:
+            # Render Stats
+            nodes_count = len(graph_data.get('nodes', []))
+            edges_count = len(graph_data.get('edges', []))
+            
+            groups = [n.get('group', 'Unknown') for n in graph_data.get('nodes', []) if n.get('group') != 'Event']
+            most_impacted = Counter(groups).most_common(1)[0][0] if groups else "N/A"
+            
+            st.markdown(f"""
+            <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                <div style="flex: 1; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; border-left: 4px solid #e74c3c;">
+                    <p style="margin: 0; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase;">Total Entities Affected</p>
+                    <h3 style="margin: 5px 0 0 0; color: #2c3e50;">{nodes_count}</h3>
+                </div>
+                <div style="flex: 1; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; border-left: 4px solid #2980b9;">
+                    <p style="margin: 0; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase;">Cascading Reactions</p>
+                    <h3 style="margin: 5px 0 0 0; color: #2c3e50;">{edges_count}</h3>
+                </div>
+                <div style="flex: 1; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; border-left: 4px solid #f39c12;">
+                    <p style="margin: 0; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase;">Most Impacted Sector</p>
+                    <h3 style="margin: 5px 0 0 0; color: #2c3e50;">{most_impacted}</h3>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Render Graph
+            try:
+                graph_path = generate_impact_network(effective_scenario, graph_data)
+                with open(graph_path, 'r', encoding='utf-8') as f:
+                    html_data = f.read()
+                components.html(html_data, height=820, scrolling=False)
             except Exception as e:
                 st.error(f"Failed to generate network graph: {e}")
 

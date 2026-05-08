@@ -103,18 +103,21 @@ def clean_json(text):
 def sanitize_input(text, max_len=50):
     """Sanitize user input to prevent basic LLM prompt injection."""
     if not text: return ""
-    # Keep only alphanumeric characters, spaces, dashes, and periods
-    sanitized = re.sub(r'[^a-zA-Z0-9\s\.\-]', '', str(text))
+    # Allow alphanumeric, spaces, dashes, periods, apostrophes, commas, and ampersands
+    # (needed for valid country names like "Cote d'Ivoire", "Korea, South", "Bosnia & Herzegovina")
+    sanitized = re.sub(r"[^a-zA-Z0-9\s\.\-',&]", '', str(text))
     return sanitized[:max_len].strip()
 
-def fetch_analysis(c1, c2, key, base_url, model):
-    if not key: return {"error": "API Key is missing."}
-    
-    # Handle OpenAI base_url requirement (OpenAI client defaults to its own if None)
+def _make_client(key: str, base_url):
+    """Construct and return a configured OpenAI-compatible client."""
     kwargs = {"api_key": key}
     if base_url:
         kwargs["base_url"] = base_url
-    client = OpenAI(**kwargs)
+    return OpenAI(**kwargs)
+
+def fetch_analysis(c1, c2, key, base_url, model):
+    if not key: return {"error": "API Key is missing."}
+    client = _make_client(key, base_url)
     
     system_prompt = """
     You are a Strategic Intelligence Algorithm. Return STRICT JSON.
@@ -166,10 +169,7 @@ def fetch_analysis(c1, c2, key, base_url, model):
 
 def fetch_global_rankings(key, base_url, model):
     if not key: return None
-    kwargs = {"api_key": key}
-    if base_url:
-        kwargs["base_url"] = base_url
-    client = OpenAI(**kwargs)
+    client = _make_client(key, base_url)
     
     system_prompt = """
     Return STRICT JSON with 'highest_pressure' and 'lowest_pressure' (10 items each).
@@ -186,10 +186,7 @@ def fetch_global_rankings(key, base_url, model):
 # --- NEW FUNCTION: MARKET WATCHDOG ---
 def fetch_market_risk(commodity, key, base_url, model):
     if not key: return {"error": "API Key Missing"}
-    kwargs = {"api_key": key}
-    if base_url:
-        kwargs["base_url"] = base_url
-    client = OpenAI(**kwargs)
+    client = _make_client(key, base_url)
     
     system_prompt = """
     You are a Global Commodity Risk Analyst. Return STRICT JSON.
@@ -249,11 +246,7 @@ def fetch_market_risk(commodity, key, base_url, model):
 
 def generate_dynamic_graph_data(event_description, key, base_url, model):
     if not key: return {"error": "API Key is missing."}
-    
-    kwargs = {"api_key": key}
-    if base_url:
-        kwargs["base_url"] = base_url
-    client = OpenAI(**kwargs)
+    client = _make_client(key, base_url)
     
     system_prompt = """
     You are an expert supply chain analyst and systems dynamics modeler. Return STRICT JSON.
@@ -297,11 +290,7 @@ def generate_dynamic_graph_data(event_description, key, base_url, model):
 
 def expand_dynamic_graph_data(existing_graph_json, key, base_url, model):
     if not key: return {"error": "API Key is missing."}
-    
-    kwargs = {"api_key": key}
-    if base_url:
-        kwargs["base_url"] = base_url
-    client = OpenAI(**kwargs)
+    client = _make_client(key, base_url)
     
     system_prompt = """
     You are an expert supply chain analyst and systems dynamics modeler. Return STRICT JSON.

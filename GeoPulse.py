@@ -18,6 +18,7 @@ try:
     CAMEL_AVAILABLE = True
 except ImportError:
     CAMEL_AVAILABLE = False
+
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="GeoPulse | Strategic Intelligence",

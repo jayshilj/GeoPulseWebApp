@@ -708,10 +708,10 @@ elif page == "🦢 Black Swan Events":
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Render Graph via st.html (replaces deprecated components.html)
+                # Render Graph via st.components.v1.html (st.html cannot render full HTML documents with physics scripts)
                 try:
                     html_data = generate_impact_network(effective_scenario, graph_data)
-                    st.html(html_data)
+                    st.components.v1.html(html_data, height=850, scrolling=True)
                 except Exception as e:
                     st.error(f"Failed to generate network graph: {e}")
 

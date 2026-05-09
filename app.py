@@ -372,7 +372,71 @@ elif page == "🦢 Black Swan Events":
     
     # 1. Simulator Controls
     with col_controls:
-    # 6. Cascading Impacts (Micro-Fish Inspiration)
+        st.markdown("""
+        <div style="background-color: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05); margin-bottom: 15px;">
+            <h3 style="margin-top:0; color:#2c3e50; font-size: 1.25rem;">🛠️ Scenario Config</h3>
+            <p style="font-size: 0.9em; color: #7f8c8d; margin-bottom: 5px;">Select a global choke point to disrupt and simulate the cascading impacts.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        scenario = st.selectbox(
+            "Select Global Shock:",
+            [
+                "Baseline (Clear Skies)",
+                "Suez Canal Total Blockage",
+                "Strait of Hormuz Closure",
+                "Malacca Strait Conflict",
+                "Panama Canal Drought/Shutdown",
+                "Custom Event"
+            ],
+            label_visibility="collapsed"
+        )
+        
+        custom_scenario_text = ""
+        if scenario == "Custom Event":
+            custom_scenario_text = st.text_input("Enter Custom Event:", placeholder="e.g. Global Internet Outage")
+        
+        # We define a variable to hold the effective scenario name
+        effective_scenario = custom_scenario_text if scenario == "Custom Event" and custom_scenario_text else scenario
+        
+        st.markdown("---")
+        run_sim = st.button("🚀 Execute Scenario", type="primary", width='stretch')
+        
+        # Initialize graph session state
+        if 'bs_graph_data' not in st.session_state:
+            st.session_state['bs_graph_data'] = None
+        if 'bs_graph_iterations' not in st.session_state:
+            st.session_state['bs_graph_iterations'] = 0
+        if 'bs_scenario' not in st.session_state:
+            st.session_state['bs_scenario'] = None
+        if 'bs_model_key' not in st.session_state:
+            st.session_state['bs_model_key'] = None
+        
+        # Invalidate graph if scenario, provider, or model changes
+        current_model_key = f"{provider}:{selected_model}"
+        if (run_sim
+                or st.session_state['bs_scenario'] != effective_scenario
+                or st.session_state['bs_model_key'] != current_model_key):
+            st.session_state['bs_graph_data'] = None
+            st.session_state['bs_graph_iterations'] = 0
+            st.session_state['bs_scenario'] = effective_scenario
+            st.session_state['bs_model_key'] = current_model_key
+        
+        st.markdown("""
+        <div style="margin-top: 20px; padding: 15px; background-color: #fff3e0; border-left: 4px solid #ef6c00; border-radius: 4px;">
+            <span style="color: #e65100; font-weight: bold; font-size: 0.9em;">Simulation Engine Active</span><br>
+            <span style="color: #555; font-size: 0.8em;">Powered by GeoPulse & CAMEL-AI</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    # 2. Disruption Logic
+    blocked_cp = None
+    if scenario == "Suez Canal Total Blockage": blocked_cp = "Suez Canal"
+    elif scenario == "Strait of Hormuz Closure": blocked_cp = "Strait of Hormuz"
+    elif scenario == "Malacca Strait Conflict": blocked_cp = "Strait of Malacca"
+    elif scenario == "Panama Canal Drought/Shutdown": blocked_cp = "Panama Canal"
+
+    # 3. Cascading Impacts (Micro-Fish Inspiration)
     st.divider()
     st.subheader("🕸️ Cascading Strategic Impacts")
     st.markdown("Analysis of how this event ripples through global markets and geopolitical domains.")
@@ -532,12 +596,6 @@ elif page == "🦢 Black Swan Events":
                     st.error(f"Failed to generate network graph: {e}")
 
     # 7. Analysis Context
-    blocked_cp = None
-    if scenario == "Suez Canal Total Blockage": blocked_cp = "Suez Canal"
-    elif scenario == "Strait of Hormuz Closure": blocked_cp = "Strait of Hormuz"
-    elif scenario == "Malacca Strait Conflict": blocked_cp = "Strait of Malacca"
-    elif scenario == "Panama Canal Drought/Shutdown": blocked_cp = "Panama Canal"
-    
     if blocked_cp:
         st.error(f"### 🚨 Strategic Alert: {blocked_cp} is currently non-operational.")
         col_a, col_b = st.columns(2)

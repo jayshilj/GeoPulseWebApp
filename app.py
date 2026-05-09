@@ -749,7 +749,7 @@ elif page == "🦢 Black Swan Events":
             st.info("Select a disruptive scenario to trigger panic.")
         else:
             with st.spinner("Simulating localized retail panic using CAMEL-AI..."):
-                chat_log = run_oasis_panic_simulation(scenario, api_key, selected_model)
+                chat_log = run_oasis_panic_simulation(scenario, api_key, selected_model, base_url)
                 
             if chat_log and isinstance(chat_log, list):
                 if "error" in str(chat_log[0]).lower() or "not installed" in str(chat_log[0]).lower():

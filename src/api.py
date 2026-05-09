@@ -232,31 +232,31 @@ def run_oasis_panic_simulation(scenario, api_key, model_choice):
     if not api_key:
         return [{"role": "System", "content": "API Key is missing."}]
         
-    # Map model name — pass api_key directly to the SDK, never write to os.environ
-    camel_model_type = ModelType.GEMINI_2_5_FLASH
-    if "pro" in model_choice.lower() and "2.5" in model_choice.lower():
-        camel_model_type = ModelType.GEMINI_2_5_PRO
-    elif "flash" in model_choice.lower() and "2.5" in model_choice.lower():
-        camel_model_type = ModelType.GEMINI_2_5_FLASH
-        
     try:
-        model = ModelFactory.create(
-            model_platform=ModelPlatformType.GEMINI,
-            model_type=camel_model_type,
-            api_key=api_key,
-            model_config_dict={"temperature": 0.7}
-        )
-    except Exception as e:
-        # Fallback to OpenAI if Gemini config fails or the user selected an OpenAI model
-        try:
+        if "gemini" in model_choice.lower():
+            camel_model_type = ModelType.GEMINI_2_5_FLASH
+            if "pro" in model_choice.lower() and "2.5" in model_choice.lower():
+                camel_model_type = ModelType.GEMINI_2_5_PRO
             model = ModelFactory.create(
-                model_platform=ModelPlatformType.DEFAULT,
-                model_type=ModelType.GPT_4O_MINI,
+                model_platform=ModelPlatformType.GEMINI,
+                model_type=camel_model_type,
                 api_key=api_key,
                 model_config_dict={"temperature": 0.7}
             )
-        except Exception as e2:
-            return [{"role": "System", "content": f"Failed to init model: {str(e2)}"}]
+        else:
+            # Route all other providers (Perplexity, DeepSeek, OpenAI) through the OpenAI-compatible default platform
+            kwargs = {
+                "model_platform": ModelPlatformType.DEFAULT,
+                "model_type": model_choice, # CAMEL accepts raw model strings for custom endpoints
+                "api_key": api_key,
+                "model_config_dict": {"temperature": 0.7}
+            }
+            if base_url:
+                kwargs["url"] = base_url
+            model = ModelFactory.create(**kwargs)
+            
+    except Exception as e:
+        return [{"role": "System", "content": f"Failed to init model: {str(e)}"}]
 
     task_prompt = (
         f"A major global crisis has occurred: {scenario}. "

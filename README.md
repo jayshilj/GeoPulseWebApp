@@ -1,51 +1,78 @@
-🌏 GeoPulse | Strategic Intelligence Dashboard
+# 🌏 GeoPulse | Strategic Intelligence Dashboard
 
-GeoPulse is an AI-powered open-source intelligence (OSINT) tool that analyzes geopolitical relations, global trade routes, and commodity risks in real-time.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://streamlit.io)
 
-Built with Python and Streamlit, it leverages multiple LLM providers (Perplexity, Google, OpenAI, DeepSeek) to synthesize diplomatic reports, economic data, and logistical flows into a structured, visual dashboard.
+GeoPulse is an AI-powered open-source intelligence (OSINT) tool that analyzes geopolitical relations, global trade routes, and commodity risks in real-time. 
+
+Built with Python and Streamlit, it leverages multiple LLM providers (Perplexity, Google, OpenAI, DeepSeek) to synthesize diplomatic reports, economic data, and logistical flows into a structured, highly visual dashboard.
 
 ---
 
-## 🚀 Key Modules
+## 🚀 Key Modules & Features
 
 ### 1. 📡 Regional Monitor
-- **Tension Gauge (0-100)**: Visualizes the current diplomatic pressure between two entities.
-- **Year-Over-Year (YoY) Comparison**: Calculates the delta between today's tension score and the score from exactly one year ago.
-- **Trade Deficit Estimator**: Provides AI-driven estimates of trade imbalances in Billions USD.
-- **Intelligence Feed**: Fetches real-time news headlines with sources and dates.
+Analyze direct bilateral relations between any two entities.
+- **Tension Gauge (0-100)**: Visualizes the current diplomatic pressure.
+- **Year-Over-Year (YoY) Comparison**: Delta between today's tension score and the score exactly one year ago.
+- **Trade Deficit Estimator**: AI-driven estimates of trade imbalances in Billions USD.
+- **Intelligence Feed**: Real-time news headlines with sources and dates.
 
-### 2. 🦢 Black Swan Simulator (NEW)
-- **Dynamic Trade Route Map**: Visualizes major global maritime routes using interactive Plotly Geo-spatial mapping.
-- **Disruption Simulation**: Execute "Black Swan" scenarios (e.g., Suez Blockage, Hormuz Closure) to see real-time route failures.
-- **Cascading Impact Analysis**: A "Micro-Metric" dashboard analyzing ripple effects across Energy, Logistics, Finance, and regional stability.
+### 2. 📊 Global Heatmap
+Get a macro view of the world's most stable and unstable regions.
+- **Top 10 Rankings**: Dynamic lists of the highest tension flashpoints and the most stable zones globally.
 
-### 3. 📈 Market Watchdog (NEW)
+### 3. 📈 Market Watchdog
+Analyze commodity and supply chain vulnerabilities.
 - **Commodity Risk Assessment**: Analyzes supply chain stability for Crude Oil, Gold, Semiconductors, Lithium, and more.
-- **Choke Point Monitoring**: Identifies threats to critical logistical nodes like the Strait of Malacca or the Panama Canal.
+- **Choke Point Monitoring**: Identifies threats to critical logistical nodes (e.g., Strait of Malacca, Panama Canal).
 - **Producer Tension Index**: Tracks the geopolitical stability of top-producing nations for specific commodities.
 
-### 4. 📊 Global Heatmap
-- **Top 10 Rankings**: Dynamic lists of the highest tension flashpoints and the most stable zones globally.
+### 4. 🦢 Black Swan Simulator
+Model the cascading effects of global crises.
+- **Iterative Relationship Graph**: Visualizes cascading supply chain failures using an interactive, force-directed network graph powered by Pyvis. Users can iteratively "expand" the graph to explore deeper 2nd and 3rd order consequences.
+- **Multi-Agent Panic Simulation**: Utilizes CAMEL-AI to instantiate a multi-agent role-playing simulation between a "Retail Store Manager" and an "Anxious Consumer" to predict ground-level behavioral economics and stock shortages during the crisis.
+- **Cascading Impact Analysis**: A "Micro-Metric" dashboard analyzing ripple effects across Energy, Logistics, Finance, and regional stability.
 
 ---
 
 ## 🛠️ Tech Stack
 - **Frontend**: Streamlit (Web UI)
-- **Visualization**: Plotly (Interactive Maps & Gauges)
+- **Visualization**: Plotly (Interactive Maps & Gauges), Pyvis (Network Graphs)
+- **Multi-Agent Simulation**: CAMEL-AI
 - **AI / LLM Support**: 
   - **Perplexity**: `sonar-pro`
-  - **Google Gemini**: `gemini-1.5-pro`, `gemini-2.0-flash`
-  - **OpenAI**: `gpt-4o`, `o1-mini`
+  - **Google Gemini**: `gemini-1.5-pro`, `gemini-2.5-flash`
+  - **OpenAI**: `gpt-4o`, `gpt-4o-mini`
   - **DeepSeek**: `deepseek-chat`, `deepseek-reasoner`
 - **Data Engine**: Pandas & JSON Processing
 
 ---
 
-## 📦 Installation
+## 📂 Project Structure
+
+```plaintext
+GeoPulseWebApp/
+├── app.py                 # Main Streamlit application entry point
+├── src/
+│   ├── api.py             # LLM integrations and multi-agent simulation logic
+│   ├── graph.py           # Pyvis network graph generation logic
+│   └── utils.py           # Helper functions, UI styling, and JSON parsers
+├── docs/
+│   └── ISSUES.md          # Known issues & roadmap
+├── requirements.txt       # Project dependencies
+├── LICENSE                # MIT License
+└── README.md              # Project documentation
+```
+
+---
+
+## 📦 Installation & Setup
 
 ### Prerequisites
 - Python 3.8+
-- API Key from one of the supported providers (Perplexity, Google, OpenAI, or DeepSeek).
+- An API Key from one of the supported providers (Perplexity, Google, OpenAI, or DeepSeek).
 
 ### Step 1: Clone the Repository
 ```bash
@@ -56,8 +83,10 @@ cd GeoPulseWebApp
 ### Step 2: Set Up Virtual Environment (Recommended)
 ```bash
 python -m venv venv
+
 # Windows:
 .\venv\Scripts\activate
+
 # Mac/Linux:
 source venv/bin/activate
 ```
@@ -69,28 +98,16 @@ pip install -r requirements.txt
 
 ### Step 4: Run the Application
 ```bash
-streamlit run GeoPulse.py
+streamlit run app.py
 ```
 
 ---
 
 ## 🖥️ Usage Guide
-1. **Configure Model**: Select your LLM provider and enter your API Key in the sidebar.
+1. **Configure Model**: Select your preferred LLM provider and enter your API Key in the sidebar.
 2. **Select Module**: Choose between Regional Monitor, Global Heatmap, Market Watchdog, or the Black Swan Simulator.
-3. **Execute Scan**: Input your parameters and click "Initialize Scan" or "Analyze Risk".
-4. **Analyze Impacts**: Use the interactive maps and cascading impact cards to assess geopolitical risk.
-
----
-
-## 📂 Project Structure
-```plaintext
-geopulse/
-│
-├── GeoPulse.py         # Main application logic & UI
-├── requirements.txt    # List of dependencies
-├── README.md           # Documentation
-└── ISSUES.md           # Known issues & roadmap
-```
+3. **Execute Scan**: Input your geopolitical parameters and click the action button (e.g., "Initialize Scan", "Analyze Risk").
+4. **Analyze Impacts**: Use the interactive maps, cascading impact cards, and the iterative graph expansion to assess geopolitical risk.
 
 ---
 
@@ -98,4 +115,4 @@ geopulse/
 This tool is for informational purposes only. Data is generated by LLMs researching the internet in real-time. While highly effective for strategic intelligence, AI can occasionally misinterpret nuanced diplomatic events or hallucinate specific figures. Always verify critical data with official government sources (e.g., World Bank, IMF, Ministry of External Affairs).
 
 ## 🤝 Contributing
-Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change. All contributions are subject to the MIT License.

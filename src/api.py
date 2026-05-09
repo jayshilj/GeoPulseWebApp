@@ -226,7 +226,7 @@ def expand_dynamic_graph_data(existing_graph_json, key, base_url, model):
     except Exception as e:
         return {"error": str(e)}
 
-def run_oasis_panic_simulation(scenario, api_key, model_choice):
+def run_oasis_panic_simulation(scenario, api_key, model_choice, base_url=None):
     if not CAMEL_AVAILABLE:
         return [{"role": "System", "content": "CAMEL-AI library is not installed."}]
     if not api_key:

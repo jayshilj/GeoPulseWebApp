@@ -368,194 +368,10 @@ elif page == "🦢 Black Swan Events":
     st.markdown("Visualize the impact of catastrophic geopolitical shocks on global trade routes and logistical flows.")
 
     # Layout Setup
-    col_map, col_controls = st.columns([3.5, 1.5], gap="large")
+    col_controls = st.container()
     
-    # 1. Simulator Controls (Right Side)
+    # 1. Simulator Controls
     with col_controls:
-        st.markdown("""
-        <div style="background-color: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05); margin-bottom: 15px;">
-            <h3 style="margin-top:0; color:#2c3e50; font-size: 1.25rem;">🛠️ Scenario Config</h3>
-            <p style="font-size: 0.9em; color: #7f8c8d; margin-bottom: 5px;">Select a global choke point to disrupt and simulate the cascading impacts.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        scenario = st.selectbox(
-            "Select Global Shock:",
-            [
-                "Baseline (Clear Skies)",
-                "Suez Canal Total Blockage",
-                "Strait of Hormuz Closure",
-                "Malacca Strait Conflict",
-                "Panama Canal Drought/Shutdown",
-                "Custom Event"
-            ],
-            label_visibility="collapsed"
-        )
-        
-        custom_scenario_text = ""
-        if scenario == "Custom Event":
-            custom_scenario_text = st.text_input("Enter Custom Event:", placeholder="e.g. Global Internet Outage")
-        
-        # We define a variable to hold the effective scenario name
-        effective_scenario = custom_scenario_text if scenario == "Custom Event" and custom_scenario_text else scenario
-        
-        st.markdown("---")
-        run_sim = st.button("🚀 Execute Scenario", type="primary", width='stretch')
-        
-        # Initialize graph session state
-        if 'bs_graph_data' not in st.session_state:
-            st.session_state['bs_graph_data'] = None
-        if 'bs_graph_iterations' not in st.session_state:
-            st.session_state['bs_graph_iterations'] = 0
-        if 'bs_scenario' not in st.session_state:
-            st.session_state['bs_scenario'] = None
-        if 'bs_model_key' not in st.session_state:
-            st.session_state['bs_model_key'] = None
-        
-        # Invalidate graph if scenario, provider, or model changes
-        current_model_key = f"{provider}:{selected_model}"
-        if (run_sim
-                or st.session_state['bs_scenario'] != effective_scenario
-                or st.session_state['bs_model_key'] != current_model_key):
-            st.session_state['bs_graph_data'] = None
-            st.session_state['bs_graph_iterations'] = 0
-            st.session_state['bs_scenario'] = effective_scenario
-            st.session_state['bs_model_key'] = current_model_key
-        
-        st.markdown("""
-        <div style="margin-top: 20px; padding: 15px; background-color: #fff3e0; border-left: 4px solid #ef6c00; border-radius: 4px;">
-            <span style="color: #e65100; font-weight: bold; font-size: 0.9em;">Simulation Engine Active</span><br>
-            <span style="color: #555; font-size: 0.8em;">Powered by GeoPulse & CAMEL-AI</span>
-        </div>
-        """, unsafe_allow_html=True)
-        
-    # 2. Data Definition
-    choke_points = {
-        "Suez Canal": {"lat": 30.58, "lon": 32.26, "impact": ["Asia-Europe", "ME-Europe"]},
-        "Strait of Hormuz": {"lat": 26.56, "lon": 56.25, "impact": ["ME-Europe"]},
-        "Strait of Malacca": {"lat": 1.43, "lon": 102.89, "impact": ["Asia-Europe"]},
-        "Panama Canal": {"lat": 9.11, "lon": -79.68, "impact": ["US-Asia (East)"]}
-    }
-
-    # Simplified Trade Routes (Multi-segment for disruption logic)
-    routes = {
-        "Asia-Europe": [
-            (31.2, 121.5), # Shanghai
-            (1.43, 102.89), # Malacca
-            (12.58, 43.33), # Bab-el-Mandeb
-            (30.58, 32.26), # Suez
-            (36.0, -5.6),   # Gibraltar
-            (51.9, 4.5)     # Rotterdam
-        ],
-        "ME-Europe": [
-            (26.7, 50.1),  # Ras Tanura
-            (26.56, 56.25),# Hormuz
-            (12.58, 43.33),# Bab-el-Mandeb
-            (30.58, 32.26),# Suez
-            (51.9, 4.5)    # Rotterdam
-        ],
-        "US-Asia (East)": [
-            (40.7, -74.0), # NY
-            (9.11, -79.68), # Panama
-            (35.7, 139.7)  # Tokyo
-        ],
-        "US-Europe": [
-            (40.7, -74.0), # NY
-            (51.5, -0.1)   # London
-        ]
-    }
-
-    # 3. Disruption Logic
-    blocked_cp = None
-    if scenario == "Suez Canal Total Blockage": blocked_cp = "Suez Canal"
-    elif scenario == "Strait of Hormuz Closure": blocked_cp = "Strait of Hormuz"
-    elif scenario == "Malacca Strait Conflict": blocked_cp = "Strait of Malacca"
-    elif scenario == "Panama Canal Drought/Shutdown": blocked_cp = "Panama Canal"
-
-    # 4. Impact Metrics
-    m1, m2, m3, m4 = col_map.columns(4)
-    if blocked_cp:
-        delay = "12-18 Days" if "Suez" in blocked_cp else "8-12 Days"
-        cost = "+45%" if "Hormuz" in blocked_cp else "+25%"
-        panic = "CRITICAL" if "Hormuz" in blocked_cp else "HIGH"
-        color = "#c0392b"
-    else:
-        delay = "0 Days"
-        cost = "Baseline"
-        panic = "STABLE"
-        color = "#27ae60"
-
-    with m1: st.metric("Logistical Delay", delay, delta=delay if blocked_cp else None, delta_color="inverse")
-    with m2: st.metric("Freight Cost Index", cost, delta=cost if blocked_cp else None, delta_color="inverse")
-    with m3: st.metric("Global Supply Panic", panic)
-    with m4: st.metric("Active Choke Points", "1 Blocked" if blocked_cp else "All Clear")
-
-    # 5. Map Visualization
-    fig = go.Figure()
-
-    # Base Map Settings
-    fig.update_geos(
-        projection_type="natural earth",
-        showcountries=True,
-        countrycolor="#2c3e50",
-        showocean=True,
-        oceancolor="#0a192f",
-        showlakes=True,
-        lakecolor="#0a192f",
-        bgcolor="rgba(0,0,0,0)"
-    )
-
-    # Draw Routes
-    for name, path in routes.items():
-        lats, lons = zip(*path)
-        
-        is_blocked = False
-        if blocked_cp and name in choke_points[blocked_cp]["impact"]:
-            is_blocked = True
-
-        line_color = "#e74c3c" if is_blocked else "#00d2ff"
-        line_width = 3 if not is_blocked else 2
-        line_dash = "dash" if is_blocked else "solid"
-        opacity = 0.8 if not is_blocked else 0.4
-
-        fig.add_trace(go.Scattergeo(
-            lat=lats,
-            lon=lons,
-            mode='lines+markers',
-            name=name,
-            line=dict(width=line_width, color=line_color, dash=line_dash),
-            marker=dict(size=4, color=line_color),
-            opacity=opacity,
-            hoverinfo='text',
-            text=f"Route: {name} ({'BLOCKED' if is_blocked else 'Flowing'})"
-        ))
-
-    # Add Choke Points
-    for cp_name, coords in choke_points.items():
-        is_active_block = (cp_name == blocked_cp)
-        marker_color = "#ff0000" if is_active_block else "#f1c40f"
-        marker_size = 12 if is_active_block else 8
-        symbol = "x" if is_active_block else "circle"
-        
-        fig.add_trace(go.Scattergeo(
-            lat=[coords["lat"]],
-            lon=[coords["lon"]],
-            mode='markers',
-            name=cp_name,
-            marker=dict(size=marker_size, color=marker_color, symbol=symbol, line=dict(width=2, color="white")),
-            hoverinfo='text',
-            text=f"CHOKE POINT: {cp_name} | {'🚨 BLOCKED' if is_active_block else '✅ CLEAR'}"
-        ))
-
-    fig.update_layout(
-        height=600,
-        margin=dict(l=0, r=0, t=0, b=0),
-        paper_bgcolor='rgba(0,0,0,0)',
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-
-    col_map.plotly_chart(fig, width='stretch')
-
     # 6. Cascading Impacts (Micro-Fish Inspiration)
     st.divider()
     st.subheader("🕸️ Cascading Strategic Impacts")
@@ -716,6 +532,12 @@ elif page == "🦢 Black Swan Events":
                     st.error(f"Failed to generate network graph: {e}")
 
     # 7. Analysis Context
+    blocked_cp = None
+    if scenario == "Suez Canal Total Blockage": blocked_cp = "Suez Canal"
+    elif scenario == "Strait of Hormuz Closure": blocked_cp = "Strait of Hormuz"
+    elif scenario == "Malacca Strait Conflict": blocked_cp = "Strait of Malacca"
+    elif scenario == "Panama Canal Drought/Shutdown": blocked_cp = "Panama Canal"
+    
     if blocked_cp:
         st.error(f"### 🚨 Strategic Alert: {blocked_cp} is currently non-operational.")
         col_a, col_b = st.columns(2)

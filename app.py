@@ -68,7 +68,7 @@ st.markdown("""
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.image("https://img.icons8.com/color/96/globe--v1.png", width=60)
+    st.image("assets/logo.png", width=120)
     st.title("GeoPulse")
     st.caption("Strategic Intelligence")
     st.divider()
@@ -436,82 +436,7 @@ elif page == "🦢 Black Swan Events":
     elif scenario == "Malacca Strait Conflict": blocked_cp = "Strait of Malacca"
     elif scenario == "Panama Canal Drought/Shutdown": blocked_cp = "Panama Canal"
 
-    # 3. Cascading Impacts (Micro-Fish Inspiration)
-    st.divider()
-    st.subheader("🕸️ Cascading Strategic Impacts")
-    st.markdown("Analysis of how this event ripples through global markets and geopolitical domains.")
-
-    # Impact Matrix Definition
-    impact_matrix = {
-        "Suez Canal Total Blockage": {
-            "Brent Crude Oil": {"val": "+8.5%", "trend": "up", "severity": "High", "note": "Delayed tankers"},
-            "EU Natural Gas": {"val": "+12.2%", "trend": "up", "severity": "High", "note": "LNG rerouting"},
-            "Global Freight Index": {"val": "+35.0%", "trend": "up", "severity": "Critical", "note": "Cape of Good Hope detour"},
-            "G7 Inflation": {"val": "+0.4%", "trend": "up", "severity": "Medium", "note": "Import cost pass-through"},
-            "Semiconductors": {"val": "+5.0%", "trend": "up", "severity": "Medium", "note": "SEA-Europe transit delay"},
-            "Agricultural Trade": {"val": "+4.2%", "trend": "up", "severity": "Medium", "note": "Fertilizer supply chain"}
-        },
-        "Strait of Hormuz Closure": {
-            "Brent Crude Oil": {"val": "+45.0%", "trend": "up", "severity": "Critical", "note": "20% global supply cutoff"},
-            "EU Natural Gas": {"val": "+25.0%", "trend": "up", "severity": "Critical", "note": "Qatar LNG blockage"},
-            "Global Freight Index": {"val": "+15.0%", "trend": "up", "severity": "High", "note": "Insurance premium spike"},
-            "USD Strength": {"val": "+6.5%", "trend": "up", "severity": "High", "note": "Safe haven flight"},
-            "Regional Tension": {"val": "100/100", "trend": "up", "severity": "Critical", "note": "Potential kinetic conflict"},
-            "Global GDP": {"val": "-1.2%", "trend": "down", "severity": "High", "note": "Energy price shock"}
-        },
-        "Malacca Strait Conflict": {
-            "Semiconductors": {"val": "+60.0%", "trend": "up", "severity": "Critical", "note": "Taiwan/Korea export halt"},
-            "Global Freight Index": {"val": "+22.0%", "trend": "up", "severity": "High", "note": "Pacific transit disruption"},
-            "Consumer Electronics": {"val": "+15.0%", "trend": "up", "severity": "High", "note": "Inventory depletion"},
-            "ASEAN Stability": {"val": "Strained", "trend": "down", "severity": "High", "note": "Regional power struggle"},
-            "Cyber Threat Level": {"val": "Elevated", "trend": "up", "severity": "High", "note": "State-actor infrastructure targeting"},
-            "USD Strength": {"val": "+3.2%", "trend": "up", "severity": "Medium", "note": "Emerging market flight"}
-        },
-        "Panama Canal Drought/Shutdown": {
-            "US East Coast Freight": {"val": "+28.0%", "trend": "up", "severity": "High", "note": "US West Coast port congestion"},
-            "Agricultural Exports": {"val": "-12.0%", "trend": "down", "severity": "High", "note": "US Grain to Asia blockage"},
-            "Global LNG Supply": {"val": "Strained", "trend": "up", "severity": "Medium", "note": "US-Asia transit delays"},
-            "Vessel Wait Times": {"val": "22+ Days", "trend": "up", "severity": "High", "note": "Queuing at Atlantic/Pacific gates"},
-            "Intermodal Rail Cost": {"val": "+18.0%", "trend": "up", "severity": "Medium", "note": "Cross-US land bridge demand"},
-            "Carbon Emissions": {"val": "+12.0%", "trend": "up", "severity": "Low", "note": "Longer alternative routes"}
-        }
-    }
-
-    if scenario in impact_matrix:
-        impacts = impact_matrix[scenario]
-        cols = st.columns(3)
-        
-        for i, (factor, data) in enumerate(impacts.items()):
-            with cols[i % 3]:
-                # Visual Logic
-                t_color = "#c0392b" if data["trend"] == "up" and data["severity"] != "Low" else "#27ae60"
-                if data["trend"] == "down": t_color = "#27ae60" if "Inflation" not in factor else "#c0392b"
-                
-                # Severity Badge
-                sev = data["severity"]
-                if sev == "Critical": badge_style = "background-color: #ff0000; color: white;"
-                elif sev == "High": badge_style = "background-color: #ff8c00; color: white;"
-                else: badge_style = "background-color: #eee; color: #333;"
-
-                st.markdown(f"""
-                <div style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0px 2px 4px rgba(0,0,0,0.05);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                        <span style="font-weight: 700; font-size: 0.9em; color: #34495e;">{factor.upper()}</span>
-                        <span style="font-size: 0.7em; padding: 2px 6px; border-radius: 4px; {badge_style}">{sev}</span>
-                    </div>
-                    <div style="display:flex; align-items:baseline; gap: 8px;">
-                        <span style="font-size: 1.4rem; font-weight: 700; color: {t_color};">{data['val']}</span>
-                        <span style="font-size: 0.8rem; color: #7f8c8d;">{'📈' if data['trend'] == 'up' else '📉'}</span>
-                    </div>
-                    <div style="margin-top: 5px; font-size: 0.75rem; color: #555; font-style: italic;">
-                        {data['note']}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-    else:
-        st.info("No predefined cascading impacts analyzed for the current scenario. Wait for the AI to map it below!")
-
-    # --- Interactive Network Graph ---
+    # 3. Interactive Network Graph ---
     st.markdown("---")
     st.markdown("#### 🔗 Interactive Relationship Graph")
     if effective_scenario and effective_scenario != "Baseline (Clear Skies)":
@@ -520,7 +445,7 @@ elif page == "🦢 Black Swan Events":
             st.warning("⚠️ **API Key Required** — Please configure your API key in the sidebar (⚙️ Model Configuration) to generate the interactive supply chain graph.")
         else:
             # 1. Ensure Initial Data Exists
-            if not st.session_state.get('bs_graph_data'):
+            if run_sim and not st.session_state.get('bs_graph_data'):
                 with st.spinner(f"AI is modeling initial supply chain reactions..."):
                     st.session_state['bs_graph_data'] = generate_dynamic_graph_data(effective_scenario, api_key, base_url, selected_model)
 

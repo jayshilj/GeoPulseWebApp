@@ -1,5 +1,9 @@
 # Building GeoPulse: How I Built an AI-Powered OSINT Dashboard for Geopolitical & Supply Chain Analysis
 
+<p align="center">
+  <img src="../assets/logo.png" width="300" alt="GeoPulse Logo"/>
+</p>
+
 We live in an era where a single blocked canal or a localized geopolitical skirmish can send shockwaves through global supply chains within hours. Understanding these cascading impacts requires more than just reading the news—it requires synthesizing massive amounts of unstructured diplomatic, economic, and logistical data in real-time.
 
 That’s why I built **GeoPulse**—an AI-powered Open-Source Intelligence (OSINT) dashboard designed to analyze geopolitical relations, trade route vulnerabilities, and commodity risks.

@@ -1,5 +1,9 @@
 # 🌏 GeoPulse | Strategic Intelligence Dashboard
 
+<p align="center">
+  <img src="assets/logo.png" width="250" alt="GeoPulse Logo"/>
+</p>
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://streamlit.io)

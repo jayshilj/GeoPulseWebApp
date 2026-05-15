@@ -27,27 +27,28 @@ Built with **Python** and **Streamlit**, it leverages advanced LLM orchestration
 ## 🚀 Key Modules & Features
 
 ### 1. 📡 Regional Monitor
-Analyze direct bilateral relations between any two entities.
-- **Tension Gauge (0-100)**: Visualizes the current diplomatic pressure.
-- **Year-Over-Year (YoY) Comparison**: Delta between today's tension score and the score exactly one year ago.
-- **Trade Deficit Estimator**: AI-driven estimates of trade imbalances in Billions USD.
-- **Intelligence Feed**: Real-time news headlines with sources and dates.
+Deep-dive analysis of bilateral relations between any two global entities.
+- **Tension Gauge (0-100)**: Real-time visualization of current diplomatic friction.
+- **YoY Comparison**: Automated delta calculation between today's tension and the same date last year.
+- **Trade Deficit Estimator**: AI-driven estimates of trade imbalances in USD Billions.
+- **Intelligence Feed**: Curated live news headlines with source attribution.
 
 ### 2. 📊 Global Heatmap
-Get a macro view of the world's most stable and unstable regions.
-- **Top 10 Rankings**: Dynamic lists of the highest tension flashpoints and the most stable zones globally.
+Macro-level assessment of the world's most stable and unstable regions.
+- **Real-time Rankings**: Dynamic "Flashpoints" (High Tension) vs. "Stable Zones" (Low Tension) lists.
+- **Global Data Synthesis**: Aggregates tension scores across dozens of nations simultaneously.
 
-### 3. 📈 Market Watchdog
-Analyze commodity and supply chain vulnerabilities.
-- **Commodity Risk Assessment**: Analyzes supply chain stability for Crude Oil, Gold, Semiconductors, Lithium, and more.
-- **Choke Point Monitoring**: Identifies threats to critical logistical nodes (e.g., Strait of Malacca, Panama Canal).
-- **Producer Tension Index**: Tracks the geopolitical stability of top-producing nations for specific commodities.
+### 3. 📈 Market Watchdog (NEW)
+Analyze how geopolitical instability impacts global markets and commodities.
+- **Commodity Risk Assessment**: Supply chain stability tracking for Oil, Gold, Semiconductors, Lithium, and more.
+- **Choke Point Monitoring**: Threat analysis for critical nodes (e.g., Strait of Malacca, Suez Canal, Panama Canal).
+- **Producer Tension Index**: Tracks the domestic stability of top-producing nations for specific strategic assets.
 
 ### 4. 🦢 Black Swan Simulator
-Model the cascading effects of global crises.
-- **Iterative Relationship Graph**: Visualizes cascading supply chain failures using an interactive, force-directed network graph powered by Pyvis. Users can iteratively "expand" the graph to explore deeper 2nd and 3rd order consequences.
-- **Multi-Agent Panic Simulation**: Utilizes CAMEL-AI to instantiate a multi-agent role-playing simulation between a "Retail Store Manager" and an "Anxious Consumer" to predict ground-level behavioral economics and stock shortages during the crisis.
-- **Cascading Impact Analysis**: A "Micro-Metric" dashboard analyzing ripple effects across Energy, Logistics, Finance, and regional stability.
+Model the cascading effects of global crises using advanced AI simulations.
+- **Iterative Relationship Graph**: Force-directed network graph (powered by Pyvis) that allows users to explore 2nd and 3rd order logistical consequences.
+- **Oasis Panic Simulation**: Multi-agent role-playing (via CAMEL-AI) between a "Store Manager" and "Consumer" to predict ground-level behavioral economics during a crisis.
+- **Micro-Metric Dashboard**: Real-time analysis of ripple effects across Energy, Logistics, and Finance sectors.
 
 ---
 

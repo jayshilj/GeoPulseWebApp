@@ -4,13 +4,23 @@
   <img src="assets/logo.png" width="250" alt="GeoPulse Logo"/>
 </p>
 
+### *AI-Powered Geopolitical Risk Assessment & Supply Chain Intelligence*
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://streamlit.io)
 
-GeoPulse is an AI-powered open-source intelligence (OSINT) tool that analyzes geopolitical relations, global trade routes, and commodity risks in real-time. 
+GeoPulse is a professional-grade open-source intelligence (OSINT) dashboard that analyzes geopolitical relations, global trade routes, and commodity risks in real-time. 
 
-Built with Python and Streamlit, it leverages multiple LLM providers (Perplexity, Google, OpenAI, DeepSeek) to synthesize diplomatic reports, economic data, and logistical flows into a structured, highly visual dashboard.
+Built with **Python** and **Streamlit**, it leverages advanced LLM orchestration (Perplexity, Google, OpenAI, DeepSeek) to synthesize diplomatic reports, economic data, and logistical flows into a structured, highly visual interface for strategic decision-making.
+
+---
+
+## 👨‍💻 Connect with the Developer
+**Jayshil Jain**  
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/jayshilj)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jayshiljain/)
+[![Website](https://img.shields.io/badge/Website-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)](https://www.jayshil.com/)
 
 ---
 

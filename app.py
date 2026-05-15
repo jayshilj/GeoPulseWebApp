@@ -286,10 +286,14 @@ elif page == "📈 Market Watchdog":
                 st.divider()
                 
                 # 3. Tabbed Detail View
-                tab_prod, tab_choke, tab_swan = st.tabs(["🌍 Top Producers", "🚢 Logistical Choke Points", "🦢 Black Swan Simulator"])
+                tab_prod, tab_refin, tab_choke = st.tabs(["🌍 Top Producers", "🏭 Top Refiners", "🚢 Logistical Choke Points"])
                 
                 with tab_prod:
                     st.subheader("🌍 Key Producers & Tension Levels")
+                    producer_source = market_data.get('producer_source', 'Unknown Source')
+                    if producer_source != "Unknown Source":
+                        st.caption(f"**Data Source:** {producer_source}")
+                        
                     producers = market_data.get('top_producers', [])
                     if producers:
                         for p in producers:
@@ -313,9 +317,43 @@ elif page == "📈 Market Watchdog":
                             """, unsafe_allow_html=True)
                     else:
                         st.info("No producer data found.")
+                        
+                with tab_refin:
+                    st.subheader("🏭 Key Refiners/Processors & Tension Levels")
+                    refiner_source = market_data.get('refiner_source', 'Unknown Source')
+                    if refiner_source != "Unknown Source":
+                        st.caption(f"**Data Source:** {refiner_source}")
+                        
+                    refiners = market_data.get('top_refiners', [])
+                    if refiners:
+                        for r in refiners:
+                            t_score = r.get('tension_index', 0)
+                            if t_score > 75: badge = "🔴 CRITICAL"
+                            elif t_score > 50: badge = "🟠 HIGH"
+                            else: badge = "🟢 STABLE"
+                            st.markdown(f"""
+                            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid {get_color(t_score)}">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <h4 style="margin:0;">{r.get('country')}</h4>
+                                    <span style="font-size:0.9em; background:#eee; padding:3px 8px; border-radius:5px;">Share: {r.get('production_share')}</span>
+                                </div>
+                                <div style="margin-top: 8px; font-size: 0.95em;">
+                                    <b>Tension Score:</b> {t_score} &nbsp;|&nbsp; <b>Status:</b> {badge}
+                                </div>
+                                <div style="margin-top: 5px; color: #666; font-size: 0.9em;">
+                                    ⚠️ <i>Risk Factor: {r.get('risk_note')}</i>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    else:
+                        st.info("No refiner data found.")
                 
                 with tab_choke:
                     st.subheader("🚢 Global Choke Point Analysis")
+                    choke_point_source = market_data.get('choke_point_source', 'Unknown Source')
+                    if choke_point_source != "Unknown Source":
+                        st.caption(f"**Data Source:** {choke_point_source}")
+                        
                     choke_points = market_data.get('choke_points', [])
                     if choke_points:
                         for cp in choke_points:
@@ -340,27 +378,6 @@ elif page == "📈 Market Watchdog":
                             """, unsafe_allow_html=True)
                     else:
                         st.info("No choke point data analyzed.")
-                
-                with tab_swan:
-                    swan = market_data.get('black_swan', {})
-                    if swan:
-                        st.markdown(f"""
-                        <div style="background-color: #1a1a1a; color: #f1f1f1; padding: 25px; border-radius: 15px; border: 1px solid #333; box-shadow: 0px 10px 20px rgba(0,0,0,0.5);">
-                            <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                                <span style="font-size: 30px; margin-right: 15px;">🦢</span>
-                                <h3 style="margin: 0; color: #fff;">{swan.get('event_name', 'System Shock')}</h3>
-                            </div>
-                            <div style="background-color: #2d2d2d; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                <p style="margin: 0; font-size: 1.05em; line-height: 1.5; color: #ddd;">{swan.get('description', '')}</p>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; border-top: 1px solid #444; padding-top: 15px; font-weight: bold;">
-                                <span style="color: #ffb74d;">Probability: {swan.get('probability', 'N/A')}</span>
-                                <span style="color: #ef5350;">Est. Impact: {swan.get('price_impact', 'N/A')}</span>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    else:
-                        st.info("No Black Swan scenario generated.")
 
 # --- PAGE 4: BLACK SWAN EVENTS (NEW) ---
 elif page == "🦢 Black Swan Events":

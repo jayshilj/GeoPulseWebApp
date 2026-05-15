@@ -53,15 +53,15 @@ Model the cascading effects of global crises using advanced AI simulations.
 ---
 
 ## 🛠️ Tech Stack
-- **Frontend**: Streamlit (Web UI)
-- **Visualization**: Plotly (Interactive Maps & Gauges), Pyvis (Network Graphs)
-- **Multi-Agent Simulation**: CAMEL-AI
-- **AI / LLM Support**: 
-  - **Perplexity**: `sonar-pro`
-  - **Google Gemini**: `gemini-1.5-pro`, `gemini-2.5-flash`
-  - **OpenAI**: `gpt-4o`, `gpt-4o-mini`
-  - **DeepSeek**: `deepseek-chat`, `deepseek-reasoner`
-- **Data Engine**: Pandas & JSON Processing
+- **Frontend**: Streamlit (Responsive Web UI)
+- **Visualization**: Plotly (Interactive Charts), Pyvis (Network Graphs), Matplotlib
+- **Multi-Agent Simulation**: CAMEL-AI (Oasis Framework)
+- **AI / LLM Orchestration**: 
+  - **Perplexity API**: `sonar-pro` (Real-time web search)
+  - **Google Gemini**: `gemini-1.5-pro`, `gemini-2.0-flash`
+  - **OpenAI**: `gpt-4o`, `gpt-4o-mini`, `o1-mini`
+  - **DeepSeek**: `deepseek-chat`, `deepseek-reasoner` (R1)
+- **Data Engine**: Pandas, JSON, `yfinance` (Market Data)
 
 ---
 
@@ -71,14 +71,16 @@ Model the cascading effects of global crises using advanced AI simulations.
 GeoPulseWebApp/
 ├── app.py                 # Main Streamlit application entry point
 ├── src/
-│   ├── api.py             # LLM integrations and multi-agent simulation logic
-│   ├── graph.py           # Pyvis network graph generation logic
-│   └── utils.py           # Helper functions, UI styling, and JSON parsers
+│   ├── api.py             # LLM orchestration & CAMEL-AI simulation logic
+│   ├── graph.py           # Pyvis network visualization engine
+│   └── utils.py           # UI styling, gauges, and helper functions
 ├── docs/
-│   └── ISSUES.md          # Known issues & roadmap
+│   ├── ISSUES.md          # Known issues & future roadmap
+│   └── medium_article.md  # Detailed write-up on project methodology
+├── assets/                # Logos and UI assets
 ├── requirements.txt       # Project dependencies
 ├── LICENSE                # MIT License
-└── README.md              # Project documentation
+└── README.md              # Main documentation
 ```
 
 ---

@@ -1,4 +1,5 @@
 import json
+import os
 from src.utils import _make_client, clean_json, sanitize_input
 
 try:
@@ -81,48 +82,92 @@ def fetch_market_risk(commodity, key, base_url, model):
     if not key: return {"error": "API Key Missing"}
     client = _make_client(key, base_url)
     
-    system_prompt = """
+    # Load verified data
+    verified_data = {}
+    producer_source = "Unknown Source"
+    refiner_source = "Unknown Source"
+    choke_point_source = "Unknown Source"
+    verified_producers_str = "No verified data found. Use your own knowledge."
+    verified_refiners_str = "No verified data found. Use your own knowledge."
+    verified_choke_points_str = "No verified data found. Use your own knowledge."
+    try:
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'verified_production.json')
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as f:
+                verified_data = json.load(f)
+            
+            if commodity in verified_data:
+                item = verified_data[commodity]
+                producer_source = item.get("producer_source", item.get("source", "Unknown Source"))
+                refiner_source = item.get("refiner_source", "Unknown Source")
+                choke_point_source = item.get("choke_point_source", "Unknown Source")
+                
+                producers = item.get("producers", [])
+                verified_producers_str = f"VERIFIED PRODUCERS FOR {commodity} (Source: {producer_source}):\n"
+                for p in producers:
+                    verified_producers_str += f"- {p['country']} (Share: {p['share']})\n"
+                    
+                refiners = item.get("refiners", [])
+                verified_refiners_str = f"VERIFIED REFINERS/PROCESSORS FOR {commodity} (Source: {refiner_source}):\n"
+                for r in refiners:
+                    verified_refiners_str += f"- {r['country']} (Share: {r['share']})\n"
+                    
+                choke_points = item.get("choke_points", [])
+                verified_choke_points_str = f"VERIFIED CHOKE POINTS FOR {commodity} (Source: {choke_point_source}):\n"
+                for c in choke_points:
+                    verified_choke_points_str += f"- {c['name']} (Volume: {c['volume_flow']}, Reliance: {c['reliance_level']})\n"
+    except Exception as e:
+        pass
+        
+    system_prompt = f"""
     You are a Global Commodity Risk Analyst. Return STRICT JSON.
     
     TASK:
-    1. Identify top 5-8 MAJOR producing countries for the requested commodity.
-    2. Analyze the CURRENT geopolitical tension/conflict level for each country.
-    3. Calculate a "Supply Chain Risk Score" (0-100) for that commodity based on the stability of these key producers.
-    4. Predict price impact purely based on geopolitical risk (Bullish=Prices Up/Risk High, Bearish=Prices Down/Oversupply).
-    5. Identify 2-4 critical logistical shipping routes or "Choke Points" required for global transport of this commodity and assign a threat score.
-    6. Generate 1 highly disruptive "Black Swan" geopolitical event that could occur in the next 12 months impacting this commodity.
+    1. A list of VERIFIED top producing countries and their production shares is provided below. You MUST use EXACTLY these countries and production shares.
+    2. A list of VERIFIED top refining/processing countries and their shares is provided below. You MUST use EXACTLY these countries and shares.
+    3. Analyze the CURRENT geopolitical tension/conflict level for each of these provided producer and refiner countries.
+    4. Calculate a "Supply Chain Risk Score" (0-100) for that commodity based on the stability of these key producers and refiners.
+    5. Predict price impact purely based on geopolitical risk (Bullish=Prices Up/Risk High, Bearish=Prices Down/Oversupply).
+    6. A list of VERIFIED critical logistical shipping routes or "Choke Points" is provided below. You MUST use EXACTLY these choke points. Evaluate the current threat to each.
+    
+    {verified_producers_str}
+    
+    {verified_refiners_str}
+    
+    {verified_choke_points_str}
     
     REQUIRED JSON STRUCTURE:
-    {
+    {{
         "commodity": "String",
         "global_risk_score": Integer (0-100),
         "price_outlook": "String (e.g. 'Bullish', 'Bearish', 'Volatile')",
         "outlook_reason": "String (Short explanation of price prediction)",
         "top_producers": [
-            {
-                "country": "String",
-                "production_share": "String (e.g. '12%')",
+            {{
+                "country": "String (Must match provided list exactly)",
+                "production_share": "String (Must match provided list exactly)",
                 "tension_index": Integer (0-100),
                 "risk_note": "String (Specific conflict impacting supply, e.g. 'Red Sea shipping attacks')"
-            }
+            }}
+        ],
+        "top_refiners": [
+            {{
+                "country": "String (Must match provided list exactly)",
+                "production_share": "String (Must match provided list exactly)",
+                "tension_index": Integer (0-100),
+                "risk_note": "String (Specific conflict impacting refining/processing)"
+            }}
         ],
         "choke_points": [
-            {
-                "name": "String (e.g., 'Strait of Hormuz')",
-                "reliance_level": "String ('High', 'Medium', 'Low')",
-                "volume_flow": "String (e.g., '30% of global seaborne oil')",
+            {{
+                "name": "String (Must match provided list exactly)",
+                "reliance_level": "String (Must match provided list exactly)",
+                "volume_flow": "String (Must match provided list exactly)",
                 "current_threat": "String (Context of risk to this route)",
                 "threat_score": Integer (0-100)
-            }
+            }}
         ]
-    ,
-        "black_swan": {
-            "event_name": "String (Catchy title)",
-            "description": "String (What triggers it and how it cascades)",
-            "probability": "String ('Low', 'Medium', 'High')",
-            "price_impact": "String (e.g., '+60% spike')"
-        }
-    }
+    }}
     """
     
     try:
@@ -133,7 +178,12 @@ def fetch_market_risk(commodity, key, base_url, model):
                 {"role": "user", "content": f"Analyze Supply Chain Risk for: {sanitize_input(commodity, 100)}"}
             ]
         )
-        return clean_json(response.choices[0].message.content)
+        result = clean_json(response.choices[0].message.content)
+        if isinstance(result, dict):
+            result["producer_source"] = producer_source
+            result["refiner_source"] = refiner_source
+            result["choke_point_source"] = choke_point_source
+        return result
     except Exception as e:
         return {"error": str(e)}
 

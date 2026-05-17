@@ -44,6 +44,14 @@ Analyze how geopolitical instability impacts global markets and commodities usin
 - **Choke Point Monitoring**: Threat analysis for critical logistical nodes (e.g., Strait of Malacca, Suez Canal, Panama Canal).
 - **Producer Tension Index**: Tracks the domestic stability of top-producing nations for specific strategic assets.
 
+### 🔍 Verified Institutional Data Sources
+GeoPulse integrates official static datasets to ensure high-fidelity deterministic analysis across the Market Watchdog and Global Heatmap:
+- **EIA (U.S. Energy Information Administration)**: Oil and Natural Gas production, refining, and choke points.
+- **USGS (U.S. Geological Survey)**: Mineral commodities like Gold, Silver, and Lithium.
+- **SIA (Semiconductor Industry Association)**: Semiconductor production and OSAT refining.
+- **IEA (International Energy Agency)**: Critical mineral chemical refining.
+- **CSIS (Center for Strategic and International Studies)**: Strategic maritime choke points (e.g., Taiwan Strait).
+
 ### 4. 🦢 Black Swan Simulator
 Model the cascading effects of global crises using advanced AI simulations.
 - **Iterative Relationship Graph**: Force-directed network graph (powered by Pyvis) that allows users to explore 2nd and 3rd order logistical consequences.

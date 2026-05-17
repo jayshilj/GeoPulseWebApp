@@ -39,9 +39,9 @@ Macro-level assessment of the world's most stable and unstable regions.
 - **Global Data Synthesis**: Aggregates tension scores across dozens of nations simultaneously.
 
 ### 3. 📈 Market Watchdog (NEW)
-Analyze how geopolitical instability impacts global markets and commodities.
-- **Commodity Risk Assessment**: Supply chain stability tracking for Oil, Gold, Semiconductors, Lithium, and more.
-- **Choke Point Monitoring**: Threat analysis for critical nodes (e.g., Strait of Malacca, Suez Canal, Panama Canal).
+Analyze how geopolitical instability impacts global markets and commodities using deterministic, verified data.
+- **Commodity Risk Assessment**: Supply chain stability tracking for Oil, Gold, Semiconductors, Lithium, and more based on official production shares.
+- **Choke Point Monitoring**: Threat analysis for critical logistical nodes (e.g., Strait of Malacca, Suez Canal, Panama Canal).
 - **Producer Tension Index**: Tracks the domestic stability of top-producing nations for specific strategic assets.
 
 ### 4. 🦢 Black Swan Simulator

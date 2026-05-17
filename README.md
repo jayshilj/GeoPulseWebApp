@@ -69,7 +69,7 @@ Model the cascading effects of global crises using advanced AI simulations.
   - **Google Gemini**: `gemini-1.5-pro`, `gemini-2.0-flash`
   - **OpenAI**: `gpt-4o`, `gpt-4o-mini`, `o1-mini`
   - **DeepSeek**: `deepseek-chat`, `deepseek-reasoner` (R1)
-- **Data Engine**: Pandas, JSON, `yfinance` (Market Data)
+- **Data Engine**: Pandas, Static JSON Pipelines (Institutional Data), `yfinance` (Market Data)
 
 ---
 

@@ -90,7 +90,13 @@ with st.sidebar:
         base_url = "https://api.deepseek.com"
         
     selected_model = st.selectbox("Model", model_options)
+    
+    online_models = ["sonar-pro", "sonar"]
+    if selected_model not in online_models:
+        st.markdown("<div style='font-size: 0.8em; color: #d35400; background-color: #fcf3cf; padding: 8px; border-radius: 5px; margin-bottom: 10px;'>⚠️ <b>Note:</b> This model may lack real-time web access. Geopolitical analysis will rely on its last training data cutoff.</div>", unsafe_allow_html=True)
+        
     api_key = st.text_input(f"API Key ({provider})", type="password")
+    st.caption("🔒 **Privacy Note:** Your API key is stored locally in your browser's session memory and sent directly to the provider. We do not log, store, or monitor your keys.")
     st.divider()
     page = st.radio("Module", ["📡 Regional Monitor", "📊 Global Heatmap", "📈 Market Watchdog", "🦢 Black Swan Events"])
 
@@ -184,6 +190,7 @@ if page == "📡 Regional Monitor":
                     <div class="stat-label">Est. Trade Deficit</div>
                     <div class="big-stat">{val}</div>
                     <div class="stat-label" style="margin-top:0;">{data.get('trade_context', '')}</div>
+                    <div style="font-size: 10px; color: #95a5a6; margin-top: 8px;">⚠️ Estimated by AI - Verify with World Bank</div>
                 </div>
                 """, unsafe_allow_html=True)
 

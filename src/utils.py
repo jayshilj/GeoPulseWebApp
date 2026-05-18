@@ -34,6 +34,11 @@ def create_gauge(current, past):
     return fig
 
 def clean_json(text):
+    # Check for safety filter refusals
+    lower_text = text.lower()
+    if "i'm sorry" in lower_text or "cannot fulfill" in lower_text or "as an ai" in lower_text:
+        return {"error": "Simulation Blocked: The AI model's safety filters prevented it from analyzing this geopolitical scenario."}
+        
     try:
         return json.loads(text)
     except json.JSONDecodeError:
